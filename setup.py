@@ -4,9 +4,18 @@ from distutils.core import setup
 from catkin_pkg.python_setup import generate_distutils_setup
 
 # fetch values from package.xml
+
 setup_args = generate_distutils_setup(
-    packages=['robotiq_2f_85_control'],
-    package_dir={'': 'script'},
+
+    packages=['robotiq_control'],
+
+    scripts=['src/robotiq_control/GripperActionServer.py', 'src/robotiq_control/GripperModbusRtu.py', 'src/robotiq_control/GripperActionServer.py'],
+
+    package_dir={"": "src"},
+
+    requires=['rospy']
+
 )
+
 
 setup(**setup_args)

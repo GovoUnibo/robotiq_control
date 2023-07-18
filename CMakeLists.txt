@@ -51,11 +51,15 @@ catkin_package(
 
 
 
-catkin_install_python(PROGRAMS 
-                      script/GripperActionServer.py
-                      script/GripperCmd.py
-                      script/GripperModbusRtu.py
-                      script/test_client.py
-                      DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-                    )
+catkin_install_python(PROGRAMS
 
+                  src/${PROJECT_NAME}/GripperActionServer.py
+
+                  src/${PROJECT_NAME}/GripperModbusRtu.py
+
+                  src/${PROJECT_NAME}/GripperActionServer.py
+
+                  src/${PROJECT_NAME}/test_client.py
+                  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+
+                )

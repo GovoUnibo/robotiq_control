@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<robot name="robotiq_arg2f_85_model" xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:arg name="use_tactile" default="true" />
+  <xacro:arg name="use_default" default="false" />
+
+  <xacro:if value="$(arg use_default)">
+    <xacro:include filename="$(find robotiq_2f_85_gripper_visualization)/urdf/robotiq_arg2f_85_model_macro.xacro" />
+    <xacro:robotiq_arg2f_85 prefix=""/>
+  </xacro:if>
+
+  <xacro:unless value="$(arg use_default)">  <!-- If not using default, use the following leave multi choice with unless + if -->
+    <xacro:if value="$(arg use_tactile)">
+      <xacro:include filename="$(find robotiq_2f_85_gripper_visualization)/urdf/robotiq_arg2f_85_TactileSensors.xacro" />
+      <xacro:robotiq_arg2f_85 prefix=""/>
+    </xacro:if>
+  </xacro:unless>
+
+
+</robot>
