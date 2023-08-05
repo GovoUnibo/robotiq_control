@@ -7,7 +7,7 @@ from robotiq_control.msg import CommandRobotiqGripperFeedback
 from robotiq_control.msg import CommandRobotiqGripperResult
 
 #from multinherit.multinherit import multi_super  #pip3 install multinherit
-from robotiq_control.GripperModbusRtu import RobotiqGripperType
+from robotiq_control.GripperCommon import RobotiqGripperType
 from robotiq_control.GripperCmd import GripperCommand
 from sensor_msgs.msg import JointState
 import time
@@ -31,7 +31,7 @@ class RobotiqGripperActionServer(actionlib.SimpleActionServer, GripperCommand, r
         
         GripperCommand.__init__(self, gripper_type, id=slave_id, comPort=usbComPort ,baud_rate=baudRate)
         actionlib.SimpleActionServer.__init__(self, self._action_name, CommandRobotiqGripperAction, execute_cb=self.execute_callBack, auto_start=False)
-        rospy.Publisher.__init__(self, '/joint_states', JointState, queue_size=10)
+        rospy.Publisher.__init__(self, 'joint_states', JointState, queue_size=10)
 
         whatchdog_connection = rospy.Timer(rospy.Duration(15.0), self.__connection_timeout, oneshot=True)
         while not rospy.is_shutdown() and not self.initialize():

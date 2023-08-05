@@ -4,50 +4,11 @@ from pymodbus.client.sync import ModbusSerialClient # pip3 install pymodbus==1.3
 from pymodbus.exceptions import ModbusIOException
 from math import ceil
 import numpy as np
-from enum import Enum
+from robotiq_control.GripperCommon import Robotiq
 
 GOAL_DETECTION_THRESHOLD = 0.01 # Max deviation from target goal to consider as goal "reached"
 
-class Robotiq2f85(object):
-    stroke = 0.085
-    min_stroke = 0.0
-    max_stroke = 0.085
-    def getPositionRequest(pos, stroke):
-        return int(np.clip((3. - 230.)/stroke * pos + 230., 0, 255))
-        
 
-class RobotiqHandE(object):
-    stroke = 0.055
-    min_stroke = 0.0
-    max_stroke = 0.055
-    
-    def getPositionRequest(pos, stroke):
-        return int(np.clip((255. - (250 * pos /stroke)), 0, 255))
-
-
-class RobotiqGripperType(Enum):
-    Hand_E = 1
-    TwoF_85 = 2
-
-class Robotiq(Robotiq2f85, RobotiqHandE):
-    def __init__(self, gripper_type):
-        self.gripper_type = gripper_type
-        if gripper_type == RobotiqGripperType.Hand_E:
-            self.stroke = RobotiqHandE.stroke
-            self.min_stroke = RobotiqHandE.min_stroke
-            self.max_stroke = RobotiqHandE.max_stroke
-            print("Initialized RobotiqHandE -max_stroke: {}, -stroke {}".format(self.max_stroke, self.stroke))
-        elif gripper_type == RobotiqGripperType.TwoF_85:
-            self.stroke = Robotiq2f85.stroke
-            self.min_stroke = Robotiq2f85.min_stroke
-            self.max_stroke = Robotiq2f85.max_stroke
-            print("Initialized Robotiq2F85 -max_stroke: {}, -stroke {}".format(self.max_stroke, self.stroke))
-    
-    def getPositionRequest(self, pos):
-        if self.gripper_type == RobotiqGripperType.Hand_E:
-            return RobotiqHandE.getPositionRequest(pos, self.stroke)
-        elif self.gripper_type == RobotiqGripperType.TwoF_85:
-            return Robotiq2f85.getPositionRequest(pos, self.stroke)
 
 
 class RobotiqCommunication(ModbusSerialClient, Robotiq):
@@ -191,13 +152,15 @@ class RobotiqCommunication(ModbusSerialClient, Robotiq):
         self.rFR = int(np.clip(255./(self._max_force) * force, 0, 255))
         self._update_cmd()
         return self.__sendCommand()
-
-
-    def activate_gripper(self):
+    
+    def setActivationConfig(self):
         self.rACT = 1
         self.rPR  = 0
         self.rSP  = 255
         self.rFR  = 150
+
+    def activate_gripper(self):
+        self.setActivationConfig()
         self._update_cmd()
         return self.__sendCommand()
 
@@ -287,3 +250,106 @@ if __name__ == "__main__":
 
         
         
+
+
+'''
+ACT: Activation bit
+0 - Gripper not activated
+1 - Gripper activated
+GTO: 1 if the gripper is set to move to requested position 0 if gripper is set to stay at the same place
+PRE: Position request eco. Should be same a the requested position if
+the gripper successfully received the requested position.
+POS: Current position of the gripper
+SPE: Speed eco. Should be same as requested speed.
+FOR: Force parameter of the gripper
+OBJ: Object grippings status
+0 - Fingers are inmotion towards requested position.No object detected.
+1 - Fingers have stopped due to a contact while opening before requested position.Object detected opening.
+2 - Fingers have stopped due to a contact while closing before requested position.Object detected closing.
+3 - Fingers are at requested position.No object detected or object has been loss / dropped.
+STA: Gripper status, returns the current status & motion of theGripper fingers.
+0 -Gripper is in reset ( or automatic release )state. See Fault Status if Gripper is activated.
+1 - Activation in progress.
+2 - Not used.
+3 - Activation is completed.
+MOD: ...
+FLT: Fault status returns general errormessages that are useful for troubleshooting. Fault LED (red) is present on theGripper chassis,
+LED can be blue, red or both and be solid or blinking.
+0 - No fault (LED is blue)
+Priority faults (LED is blue)
+5 - Action delayed, activation (reactivation)must be completed prior to performing the action.
+7 - The activation bit must be set prior to action.
+Minor faults (LED continuous red)
+8 -Maximum operating temperature exceeded,wait for cool-down.
+9 No communication during at least 1 second.
+Major faults (LED blinking red/blue) - Reset is required (rising edge on activation bit rACT needed).
+10 - Underminimum operating voltage.
+11- Automatic release in progress.
+12- Internal fault; contact support@robotiq.com.
+13 - Activation fault, verify that no interference or other error occurred.
+14-Overcurrent triggered.
+15- Automatic release completed.
+MSC: Gripper maximym current.
+COU: Gripper current.
+NCY: Number of cycles performed by the gripper
+DST: Gripper driver state
+0 - Gripper Driver State : RQ_STATE_INIT
+1 - Gripper Driver State : RQ_STATE_LISTEN
+2 - Gripper Driver State : Q_STATE_READ_INFO
+3 - Gripper Driver State : RQ_STATE_ACTIVATION
+Other - Gripper Driver State : RQ_STATE_RUN
+PCO: Gripper connection state
+0 - Gripper Connection State : No connection problem detected
+Other - Gripper Connection State : Connection problem detected
+
+
+
+It is possible to select which gripper to send the command to by using the command sid followed by the gripper id.
+ex
+
+sid2 (will send commands to gripper with ID 2
+
+Note that ID1 in polyscope represent ID9 in socket communication(default)
+
+Here's the full list 
+drivergripper SET/GET commands SET commands : 
+
+ ACT activateRequest 
+ MOD gripperMode 
+ GTO goto 
+ ATR automaticReleaseRoutine 
+ ARD autoreleaseDirection 
+ MSC maxPeakSupplyCurrent 
+ POS positionRequest 
+ SPE speedRequest 
+ FOR forceRequest 
+ SCN_BLOCK scanBlockRequest 
+ SCN scanRequest 
+ NID updateGripperSlaveId 
+ SID socketSlaveId 
+
+ GET commands : 
+ ACT activateRequest 
+ MOD gripperMode 
+ GTO goto 
+ STA status 
+ VST vacuumStatus 
+ OBJ objectDetected 
+ FLT fault 
+ MSC maxPeakSupplyCurrent 
+ PRE positionRequestEcho 
+ POS positionRequest 
+ COU motorCurrent 
+ SNU serialNumber 
+ PYE productionYear 
+ NCY numberOfCycles 
+ PON numberOfSecondsPumpIsOn 
+ NPA numberOfPumpActivations 
+ FWV firmwareVersion 
+ VER driverVersion 
+ SPE speedRequest
+ FOR forceRequest 
+ DRI printableState
+ SID socketSlaveId
+ 
+'''
