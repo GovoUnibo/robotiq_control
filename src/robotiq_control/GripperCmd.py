@@ -10,7 +10,7 @@ class GripperCommand(RobotiqCommunication, Robotiq):
 
         self._max_stroke = self.max_stroke   #super().max_stroke
         self._min_stroke = self.min_stroke   #super().min_stroke
-        self.gripper_stroke = super().stroke
+        self.gripper_stroke = self.stroke
         self.time_expired = False
         sec_before_expire = 2
         self.threadTimer = Thread(target=self.__internalCountDown_sec, args=(sec_before_expire,))

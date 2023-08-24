@@ -2,8 +2,11 @@ import socket
 import time
 
 from enum import Enum
-from utils import enforce_cast
-from GripperCommon import RobotiqGripperType,Robotiq,RobotiqSocketCmds
+from robotiq_control.utils import enforce_cast
+from robotiq_control.GripperCommon import RobotiqGripperType,Robotiq,RobotiqSocketCmds
+''' da usare se non si usa ros'''
+# from utils import enforce_cast
+# from GripperCommon import RobotiqGripperType,Robotiq,RobotiqSocketCmds
 
 
 class ActivationStatus(Enum):
@@ -16,7 +19,7 @@ class ActivationStatus(Enum):
         
 class GripperSocket(Robotiq):
     
-    def __init__(self, robot_ip="192.168.0.103", port=63352, gripper_type=RobotiqGripperType.Hand_E):
+    def __init__(self, robot_ip="192.168.0.102", port=63352, gripper_type=RobotiqGripperType.Hand_E):
         Robotiq.__init__(self, gripper_type)
         try:
             self.skt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -54,8 +57,11 @@ class GripperSocket(Robotiq):
         
     def __sendCommand(self, cmd):
         try:
-            self.skt.sendall(cmd)
+            self.skt.settimeout(0.1)
+            self.skt.send(cmd)
+            # self.skt.sendall(cmd)
             data = self.skt.recv(2**10)
+            
             # print("Command {} Sent With Success".format(cmd.decode("utf-8").replace("\n", "")))
             if 'ack' in data.decode('utf-8'):
                 return True, -1
@@ -63,13 +69,13 @@ class GripperSocket(Robotiq):
                 return True, int(data.split()[1])
         except socket.timeout as to:
             self.connectionClose()
-            print ("Timeout Expired : %s" % to)
+            print("Timeout Expired : %s" % to)
             return False, -1
     
     
     @enforce_cast
     def __setPos_perc(self, perc:int) -> str:
-        return 255 -int(255*perc/100)
+        return 255 - int(255*perc/100)
     
     def __checkGripperStatus(self):
         result = -1
@@ -77,43 +83,40 @@ class GripperSocket(Robotiq):
         if self.is_connected:
             success, result = self.__sendCommand(RobotiqSocketCmds.cmd_get_activation_status)
         
-        print(ActivationStatus(int(result)))
+        # print(ActivationStatus(int(result)))
         return success, ActivationStatus(int(result))
     
     def setGripperAperture(self, value):
         super().setStroke(value)
         
     def initialize(self):
-        success = False
         if not self.is_connected:
             self.connect()
         
-        status_obtained, result = self.__checkGripperStatus()
+        if self.isSleeping(): #gripper is in reset
+            print("Sending Activation Cmd")
+            cmd_sent = self.__activate()
+            time.sleep(3)   
         
-        if status_obtained:
-            if result == ActivationStatus.RESET: #gripper is in reset
-                print("Sending Activation Cmd")
-                
-                cmd_sent = self.__activate()
-                time.sleep(1)
-                while cmd_sent and self.__checkGripperStatus() == ActivationStatus.ACTIVATION_DONE:
-                    success = True
-                    time.sleep(0.5) 
-            # elif result == ActivationStatus.ACTIVATION_BUSY:
-            #     pass
-            # elif result == ActivationStatus.NOT_USED:
-            #     pass     
-            elif result == ActivationStatus.ACTIVATION_DONE:
-                success = True
+        if self.isReady():
+            return True
         
-        time.sleep(1)
-        return success
+        return False
+    
     
     def __activate(self):
         return self.__sendCommand(RobotiqSocketCmds.cmd_activate)
     
     def deactivate(self):
         return self.__sendCommand(RobotiqSocketCmds.cmd_deactivate)
+    
+    def isReady(self):
+        _, activation_status =  self.__checkGripperStatus()
+        return activation_status == ActivationStatus.ACTIVATION_DONE
+    
+    def isSleeping(self):
+        _, activation_status =  self.__checkGripperStatus()
+        return activation_status == ActivationStatus.RESET
     
     def open(self):
         return self.__sendCommand(RobotiqSocketCmds.cmd_full_open)
@@ -122,27 +125,29 @@ class GripperSocket(Robotiq):
         return self.__sendCommand(RobotiqSocketCmds.cmd_full_close)
 
     def __sendMoveRoutine(self, pos, speed, force):
-    
-        success_pos = self.__sendCommand(pos)
-        success_vel = self.__sendCommand(RobotiqSocketCmds.cmd_set_speed + str(speed).encode() + b'\n') 
-        success_force = self.__sendCommand(RobotiqSocketCmds.cmd_set_force + str(force).encode() + b'\n')
+        success_pos, _   = self.__sendCommand(pos)
+        success_vel, _   = self.__sendCommand(RobotiqSocketCmds.cmd_set_speed + str(speed).encode() + b'\n')
+        success_force, _ = self.__sendCommand(RobotiqSocketCmds.cmd_set_force + str(force).encode() + b'\n')
 
         success_GTO = False
-        if success_pos and success_vel and  success_force and success_GTO:
-            sent, echo = self.getTargetPos()
-            if echo in pos.decode("utf-8"): #check se il comando ricevuto dal gripper coincide con quello inviato dall'utente
-                success_GTO = self.__sendCommand(RobotiqSocketCmds.cmd_EnableMove)
-        
+        if success_pos and success_vel and  success_force:
+            # sent, echo = self.getTargetPos()
+            # if echo in pos.decode("utf-8"): #check se il comando ricevuto dal gripper coincide con quello inviato dall'utente
+                success_GTO, _ = self.__sendCommand(RobotiqSocketCmds.cmd_EnableMove)
+        print(success_pos, success_vel, success_force, success_GTO)
         return success_GTO
+
     
     def moveToPos(self, pos, speed, force):
         if pos > self.max_stroke:
             pos = self.max_stroke
         elif pos < 0:
             pos = 0
-        
+        #devono essere int
+        speed = int(speed)
+        force = int(force) 
         pos = RobotiqSocketCmds.cmd_set_pos + str(super().getPositionRequest(pos)).encode() + b"\n"
-        self.__sendMoveRoutine(pos, speed, force)
+        return self.__sendMoveRoutine(pos, speed, force)
         
     
     @enforce_cast
@@ -153,10 +158,16 @@ class GripperSocket(Robotiq):
             pos_perc = 0
         # if self.__checkGripperStatus() == ActivationStatus.ACTIVATION_DONE:
         target_pos = RobotiqSocketCmds.cmd_set_pos + self.__setPos_perc(pos_perc).encode() + b'\n'
-        print(target_pos)
         self.__sendMoveRoutine(target_pos, speed, force)
-            
+    
+    def graspDetected(self):
+        _ , fdbk = self.__sendCommand(RobotiqSocketCmds.cmd_object_detected)
+        return fdbk == 1 or fdbk == 2
 
+    def getFaultId(self):
+        _, fdbk = self.__sendCommand(RobotiqSocketCmds.cmd_get_fault)
+        return fdbk
+         
     def getVelocityEcho(self):
         success, fdbk = self.__sendCommand(RobotiqSocketCmds.cmd_get_speed)
         return fdbk
@@ -168,27 +179,30 @@ class GripperSocket(Robotiq):
     def isInPosition(self):
         return self.getTargetPos() == self.getActualPos()
     
-    def getTargetPos(self):
+    def getRequestedPosition(self):
         success, fdbk = self.__sendCommand(RobotiqSocketCmds.cmd_get_echo)
         # print(fdbk)
-        return fdbk
+        return super().byteToPosition(fdbk)
     
     def getActualPos(self):
         success, fdbk = self.__sendCommand(RobotiqSocketCmds.cmd_get_pos)
         # print(fdbk)
+        return super().byteToPosition(fdbk)
+
+    def getCurrent(self):
+        _, fdbk = self.__sendCommand(RobotiqSocketCmds.cmd_get_current)
         return fdbk
 
 
-gripper = GripperSocket()
-gripper.setGripperAperture(0.038)
-gripper.initialize()
-# time.sleep(0.1)
-gripper.moveToPer(0, 10, 10)
+# gripper = GripperSocket()
+# gripper.setGripperAperture(0.038)
+# gripper.setGripperAperture(0.001)
+# gripper.initialize()
+# gripper.moveToPer(20, 10, 10)
 # time.sleep(2)
-# gripper.moveToPos(0.03, 10, 10)
+# gripper.moveToPos(0.9, 10, 10.1)
 
-# gripper.deactivate()
-gripper.connectionClose()
+# gripper.connectionClose()
 
 
 

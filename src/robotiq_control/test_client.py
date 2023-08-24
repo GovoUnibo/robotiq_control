@@ -15,7 +15,7 @@ from robotiq_control.msg import CommandRobotiqGripperResult
 
 def operate_gripper():
 
-    action_name = 'robotiq_hand_2'
+    action_name = 'robotiq_hand_e'
     robotiq_client = actionlib.SimpleActionClient(action_name, CommandRobotiqGripperAction)
     rospy.loginfo("Client: Waiting for Server")
     robotiq_client.wait_for_server()
@@ -23,9 +23,9 @@ def operate_gripper():
     goal = CommandRobotiqGripperGoal()
     goal.emergency_release = False
     goal.stop = False
-    goal.position = 0.02#float
+    goal.position = 0.001#float
     goal.speed = 0.02 #float
-    goal.force = 5 #int
+    goal.force = 10.1 #int
 
     robotiq_client.send_goal(goal)
     robotiq_client.wait_for_result()
@@ -35,5 +35,5 @@ def operate_gripper():
 if __name__ == '__main__':
     # Initializes a rospy node so that the SimpleActionClient can
     # publish and subscribe over ROS.
-    rospy.init_node('robotiq_2f_client')
+    rospy.init_node('node_ac')
     result = operate_gripper()

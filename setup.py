@@ -9,7 +9,7 @@ setup_args = generate_distutils_setup(
 
     packages=['robotiq_control'],
 
-    scripts=['src/robotiq_control/GripperActionServer.py', 'src/robotiq_control/GripperModbusRtu.py', 'src/robotiq_control/GripperActionServer.py'],
+    scripts=['src/robotiq_control/GripperModbusRtu.py', 'src/robotiq_control/GripperActSrvMdbsRs485.py'],
 
     package_dir={"": "src"},
 
