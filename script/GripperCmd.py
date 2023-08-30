@@ -1,16 +1,20 @@
+#/usr/bin/env python3
+print("Hello World!")
 from GripperModbusRtu import RobotiqCommunication, Robotiq
 from threading import Thread
 import warnings
 import time
+from GripperCommon import RobotiqGripperType
+from serial.tools import list_ports as readComPorts
 
 class GripperCommand(RobotiqCommunication, Robotiq):
-    def __init__(self, gripper_type, id=0, comPort='/dev/ttyUSB0',baud_rate=115200):
+    def __init__(self, gripper_type=RobotiqGripperType.Hand_E, id=0, comPort='/dev/ttyUSB0',baud_rate=115200):
         RobotiqCommunication.__init__(self, gripper_type=gripper_type, device_id=id, com_port=comPort, baud=baud_rate)
         Robotiq.__init__(self, gripper_type)
 
-        self._max_stroke = super().max_stroke
-        self._min_stroke = super().min_stroke
-        self.gripper_stroke = super().stroke
+        self._max_stroke = self.max_stroke   #super().max_stroke
+        self._min_stroke = self.min_stroke   #super().min_stroke
+        self.gripper_stroke = self.stroke
         self.time_expired = False
         sec_before_expire = 2
         self.threadTimer = Thread(target=self.__internalCountDown_sec, args=(sec_before_expire,))
@@ -134,17 +138,40 @@ class GripperCommand(RobotiqCommunication, Robotiq):
     def close_(self, speed=0.1, force=100):
         return self.sendUnmonitoredMotionCmd(self._min_stroke, speed, force)
 
+def checkPresenceComPort(COM_port):
+    myports = list(readComPorts.comports())
+    for port in myports:
+        if COM_port == port.device:
+            return True
+
+    return False
+
+def readPorts():
+    myports = list(readComPorts.comports())
+    list_of_ports = []
+    for port in myports:
+        list_of_ports.append(port.device)
+    return list_of_ports
 
 if __name__ == "__main__":
-
-    gripperComm = GripperCommand()
+    Port = '/dev/ttyUSB1'
+    print("List of Ports: ", readPorts())
+    if not checkPresenceComPort(Port):
+        print("Default '{}' COM Port not found".format(Port))
+        Port = input("Insert COM Port: ")
     
-    threadMonitorGripperStatus = Thread(target=gripperComm.getGipperStatus())
-
+    gripperComm = GripperCommand(comPort=Port)
+    
+    # threadMonitorGripperStatus = Thread(target=gripperComm.getGipperStatus())
+    
     if gripperComm.initialize():
-        #print(gripperComm.getGipperStatus())
-        gripperComm.goTo(pos=0.1, speed=0.3, force=100)
-        #print(gripperComm.getGipperStatus())
+        while True:
+            cmd = input("Insert Command: \n- o: Open\n- c: Close\n")
+            if cmd == 'o':
+                gripperComm.open_()
+            elif cmd == 'c':
+                stroke = float(input("Insert Stroke: "))
+                gripperComm.goTo(pos=stroke, speed=0.3, force=10)
 
-        # print(gripperComm.open_())
+        
         # print(gripperComm.close_())

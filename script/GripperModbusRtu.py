@@ -4,48 +4,11 @@ from pymodbus.client.sync import ModbusSerialClient # pip3 install pymodbus==1.3
 from pymodbus.exceptions import ModbusIOException
 from math import ceil
 import numpy as np
-from enum import Enum
+from GripperCommon import Robotiq
 
 GOAL_DETECTION_THRESHOLD = 0.01 # Max deviation from target goal to consider as goal "reached"
 
-class Robotiq2f85(object):
-    stroke = 0.085
-    min_stroke = 0.0
-    max_stroke = 0.085
-    def getPositionRequest(pos, stroke):
-        return int(np.clip((3. - 230.)/stroke * pos + 230., 0, 255))
-        
 
-class RobotiqHandE(object):
-    stroke = 0.055
-    min_stroke = 0.0
-    max_stroke = 0.025
-    
-    def getPositionRequest(pos, stroke):
-        return int(np.clip((255. - (250 * pos /stroke)), 0, 255))
-
-
-class RobotiqGripperType(Enum):
-    Hand_E = 1
-    TwoF_85 = 2
-
-class Robotiq(Robotiq2f85, RobotiqHandE):
-    def __init__(self, gripper_type):
-        self.gripper_type = gripper_type
-        if gripper_type == RobotiqGripperType.Hand_E:
-            self.stroke = RobotiqHandE.stroke
-            self.min_stroke = RobotiqHandE.min_stroke
-            self.max_stroke = RobotiqHandE.max_stroke
-        elif gripper_type == RobotiqGripperType.TwoF_85:
-            self.stroke = Robotiq2f85.stroke
-            self.min_stroke = Robotiq2f85.min_stroke
-            self.max_stroke = Robotiq2f85.max_stroke
-    
-    def getPositionRequest(self, pos):
-        if self.gripper_type == RobotiqGripperType.Hand_E:
-            return RobotiqHandE.getPositionRequest(pos, self.stroke)
-        elif self.gripper_type == RobotiqGripperType.TwoF_85:
-            return Robotiq2f85.getPositionRequest(pos, self.stroke)
 
 
 class RobotiqCommunication(ModbusSerialClient, Robotiq):
@@ -56,7 +19,7 @@ class RobotiqCommunication(ModbusSerialClient, Robotiq):
         self.gripper_type = gripper_type
         self.com_port = com_port
         self.device_id = device_id+9
-        self.stroke = super().stroke
+        
         self._error = []
         #initialize_communication_variables
         # Out
@@ -189,13 +152,15 @@ class RobotiqCommunication(ModbusSerialClient, Robotiq):
         self.rFR = int(np.clip(255./(self._max_force) * force, 0, 255))
         self._update_cmd()
         return self.__sendCommand()
-
-
-    def activate_gripper(self):
+    
+    def setActivationConfig(self):
         self.rACT = 1
         self.rPR  = 0
         self.rSP  = 255
         self.rFR  = 150
+
+    def activate_gripper(self):
+        self.setActivationConfig()
         self._update_cmd()
         return self.__sendCommand()
 
@@ -285,3 +250,56 @@ if __name__ == "__main__":
 
         
         
+
+
+'''
+
+It is possible to select which gripper to send the command to by using the command sid followed by the gripper id.
+ex
+
+sid2 (will send commands to gripper with ID 2
+
+Note that ID1 in polyscope represent ID9 in socket communication(default)
+
+Here's the full list 
+drivergripper SET/GET commands SET commands : 
+
+ ACT activateRequest 
+ MOD gripperMode 
+ GTO goto 
+ ATR automaticReleaseRoutine 
+ ARD autoreleaseDirection 
+ MSC maxPeakSupplyCurrent 
+ POS positionRequest 
+ SPE speedRequest 
+ FOR forceRequest 
+ SCN_BLOCK scanBlockRequest 
+ SCN scanRequest 
+ NID updateGripperSlaveId 
+ SID socketSlaveId 
+
+ GET commands : 
+ ACT activateRequest 
+ MOD gripperMode 
+ GTO goto 
+ STA status 
+ VST vacuumStatus 
+ OBJ objectDetected 
+ FLT fault 
+ MSC maxPeakSupplyCurrent 
+ PRE positionRequestEcho 
+ POS positionRequest 
+ COU motorCurrent 
+ SNU serialNumber 
+ PYE productionYear 
+ NCY numberOfCycles 
+ PON numberOfSecondsPumpIsOn 
+ NPA numberOfPumpActivations 
+ FWV firmwareVersion 
+ VER driverVersion 
+ SPE speedRequest
+ FOR forceRequest 
+ DRI printableState
+ SID socketSlaveId
+ 
+'''
