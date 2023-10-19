@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<robot name="hand_e" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <xacro:include filename="$(find robotiq_control)/urdf/hand_e/hand_e.urdf.xacro"/>
+    <xacro:include filename="$(find robotiq_control)/urdf/hand_e/hand_e_tramission.xacro"/>
+    
+    <xacro:macro name="robotiq_hand_e" params="gripper_name parent finger1_path='' finger2_path='' rpy:='0 0 0' xyz:='0 0 0' hardware_interface='hardware_interface/PositionJointInterface'">
+        
+        <xacro:hande_no_fingers prefix="${gripper_name}" 
+                                finger1_path="${finger1_path}" 
+                                finger2_path="${finger2_path}" 
+                                parent="${parent}" 
+                                rpy="${rpy}"/>
+        <xacro:robotiq_trasmission prefix="${gripper_name}" hw_interface="${hardware_interface}"/>
+
+    </xacro:macro>
+
+   
+    
+
+
+</robot>

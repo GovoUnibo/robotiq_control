@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<robot name="tactile5x5" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    
+    <xacro:macro name="finger" params="prefix parent finger_name='default' stl_name='' joint_name='' rpy:='0 0 0' xyz:='0 0 0'"> <!-- *origin-->
+        
+        <link name="${prefix}${finger_name}">
+            <inertial>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <mass value="0" />
+            <inertia
+                ixx="0"
+                ixy="0"
+                ixz="0"
+                iyy="0"
+                iyz="0"
+                izz="0" />
+            </inertial>
+            <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://robotiq_control/meshes/fingers/${stl_name}" />
+            </geometry>
+            <material name="">
+                <color rgba="1 1 1 1" />
+            </material>
+            </visual>
+            <collision>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://robotiq_control/meshes/fingers/${stl_name}" />
+            </geometry>
+            </collision>
+        </link>
+
+        <joint name="${prefix}${joint_name}" type="fixed">
+            <!-- <xacro:insert_block name="origin" /> -->
+            <origin xyz="${xyz}" rpy="${rpy}"/>
+            <parent link="${parent}"/>
+            <child  link="${prefix}${finger_name}"/>
+        </joint>
+    
+    </xacro:macro>
+
+
+    
+</robot>

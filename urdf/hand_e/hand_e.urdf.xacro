@@ -1,0 +1,135 @@
+<?xml version="1.0"?>
+<robot name="end_effectors" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <xacro:include filename="$(find robotiq_control)/urdf/hand_e/finger.xacro"/>
+
+    <xacro:macro name="hande_no_fingers" params="prefix parent finger1_path='' finger2_path='' rpy:='0 0 0' xyz:='0 0 0'"> <!-- *origin-->
+        
+        <link name="${prefix}dummy_gripper_link"/>
+        <joint name="${prefix}dummy_gripper_to_${parent}" type="fixed">
+            <origin xyz="0 0 0" rpy="-1.57 0 0"/>
+            <parent  link="${parent}"/>
+            <child link="${prefix}dummy_gripper_link"/>
+        </joint>
+
+        <link name="${prefix}base_hand_e">
+            <inertial>
+            <origin xyz="1.6137910782752E-05 -7.70769304498841E-05 0.0529600541478359" rpy="0 0 0" />
+            <mass value="0.350707561501193" />
+            <inertia
+                ixx="0.000280903692555848"
+                ixy="9.68302329294061E-07"
+                ixz="1.52980272135673E-07"
+                iyy="0.000277512650860282"
+                iyz="-5.59490858994397E-07"
+                izz="0.000205330902933327" />
+            </inertial>
+            <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://robotiq_control/meshes/hand_e/hand_e.STL" />
+            </geometry>
+            <material name="">
+                <color rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+            </material>
+            </visual>
+            <collision>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://robotiq_control/meshes/hand_e/hand_e.STL" />
+            </geometry>
+            </collision>
+        </link>
+
+        <link name="${prefix}slider1">
+            <inertial>
+            <origin xyz="0.00038634 -0.014297 -0.0088092" rpy="0 0 0" />
+            <mass value="0.0063669" />
+            <inertia
+                ixx="9.835E-07"
+                ixy="5.0686E-11"
+                ixz="1.4742E-09"
+                iyy="1.752E-07"
+                iyz="-6.5111E-09"
+                izz="9.5781E-07" />
+            </inertial>
+            <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://robotiq_control/meshes/hand_e/slider.STL" />
+            </geometry>
+            <material name="">
+                <color rgba="1 1 1 1" />
+            </material>
+            </visual>
+            <collision>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://robotiq_control/meshes/hand_e/slider.STL" />
+            </geometry>
+            </collision>
+        </link>
+
+        <link name="${prefix}slider2">
+            <inertial>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <mass value="0.0063669" />
+            <inertia
+                ixx="9.835E-07"
+                ixy="5.0686E-11"
+                ixz="1.4742E-09"
+                iyy="1.752E-07"
+                iyz="-6.5111E-09"
+                izz="9.5781E-07" />
+            </inertial>
+            <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://robotiq_control/meshes/hand_e/slider.STL" />
+            </geometry>
+            <material name="">
+                <color rgba="1 1 1 1" />
+            </material>
+            </visual>
+            <collision>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://robotiq_control/meshes/hand_e/slider.STL" />
+            </geometry>
+            </collision>
+        </link>
+
+        <joint name="${prefix}ee_to_gripper" type="fixed">
+            <!-- <xacro:insert_block name="origin" /> -->
+            <origin xyz="${xyz}" rpy="${rpy}"/>
+            <parent link="${prefix}dummy_gripper_link"/>
+            <child  link="${prefix}base_hand_e"/>
+        </joint>
+
+        <joint name="${prefix}bl_to_slider1" type="prismatic">
+            <origin xyz="-0.0145 -0.1142 -0.0315" rpy="1.5708 0.0189 0" />
+            <parent link="${prefix}base_hand_e"/>
+            <child link="${prefix}slider1"/>
+            <axis xyz="0 1 0" />
+            <limit lower="0" upper="0.035" effort="0" velocity="0" />
+        </joint>
+
+        <joint name="${prefix}bl_to_slider2"  type="prismatic">
+            <origin xyz="0.0145 -0.1142 0.0315" rpy="-1.5708 -0.0189 -3.1416" />
+            <parent link="${prefix}base_hand_e"/>
+            <child link="${prefix}slider2"/>
+            <axis xyz="0 1 0" />
+            <limit lower="0" upper="0.035" effort="0" velocity="0" />
+        </joint>
+      
+      <xacro:finger prefix="${prefix}" parent="${prefix}slider1" stl_name="${finger1_path}" finger_name="finger1"  joint_name="silder1_to_finger1"/>
+      <xacro:finger prefix="${prefix}" parent="${prefix}slider2" stl_name="${finger2_path}" finger_name="finger2"  joint_name="silder2_to_finger2"/>
+      
+
+
+    </xacro:macro>
+
+    <!-- <link name="world"/>
+    <xacro:hande_no_fingers prefix="" finger1_path="/wiring_iema/finger_right.STL" finger2_path="wiring_iema/finger_left.STL" parent="world" /> -->
+
+</robot>
