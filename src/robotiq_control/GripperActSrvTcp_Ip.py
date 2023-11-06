@@ -1,4 +1,5 @@
 # !/usr/bin/env python 3.8.10
+from platform import node
 from robotiq_control.msg import CommandRobotiqGripperAction
 from robotiq_control.msg import CommandRobotiqGripperFeedback
 from robotiq_control.msg import CommandRobotiqGripperResult
@@ -35,7 +36,7 @@ class GripperActSrvTcp_Ip(GripperSocket, actionlib.SimpleActionServer):
             rospy.logdebug_throttle(5, "Action server {} is Active".format(self._action_name))
         else:
             rospy.loginfo("Gripper Is Connected but Can't Activate ")
-        
+        self.__requested_position = 0
         self._feedback = self.__buildFdbkMsg()
         print(self._feedback)
         
@@ -54,7 +55,7 @@ class GripperActSrvTcp_Ip(GripperSocket, actionlib.SimpleActionServer):
         status.obj_detected         = super().graspDetected()
         status.fault_status         = super().getFaultId()
         status.position             = super().getActualPos()
-        status.requested_position   = super().getRequestedPosition()
+        status.requested_position   = self.__requested_position
         status.current              = super().getCurrent()
         # print(status)
         return status
@@ -66,10 +67,13 @@ class GripperActSrvTcp_Ip(GripperSocket, actionlib.SimpleActionServer):
         rospy.logerr("%s: Dropping current goal -> " + abort_error )
         actionlib.SimpleActionServer.set_aborted(self, self.__feedback , (self._action_name))
 
+    def __moveCompleted(self):
+        rospy.loginfo_once(self._action_name + ": Goal reached")
+
     def __execute_callBack(self, goal):
         self._processing_goal = False
         rospy.loginfo( (": New goal received Pos:%.3f Speed: %.3f Force: %.3f Force-Stop: %r") % (goal.position, goal.speed, goal.force, goal.stop) )
-    
+        self.__requested_position = goal.position
         success = False
         rate = rospy.Rate(1)
 
@@ -84,7 +88,7 @@ class GripperActSrvTcp_Ip(GripperSocket, actionlib.SimpleActionServer):
         watchdog_move = rospy.Timer(rospy.Duration(5.0), self.__movement_timeout, oneshot=True)
         
         while not rospy.is_shutdown() and self._processing_goal:
-            print("daje")
+
             self.__feedback = self.__buildFdbkMsg()
             rospy.logdebug("Error = %.5f Requested position = %.3f Current position = %.3f" % (self.__PosError(), self.__feedback.requested_position, self.__feedback.position))
             
@@ -100,7 +104,7 @@ class GripperActSrvTcp_Ip(GripperSocket, actionlib.SimpleActionServer):
             if( self.__PosError() < GOAL_DETECTION_THRESHOLD or self.__feedback.obj_detected):
                 self._processing_goal = False
                 success = True
-                # print(success)
+                self.__moveCompleted()
                 break
 
             actionlib.SimpleActionServer.publish_feedback(self, self.__feedback)
@@ -115,12 +119,15 @@ class GripperActSrvTcp_Ip(GripperSocket, actionlib.SimpleActionServer):
             self.set_succeeded(self.__result)
 
     def __PosError(self):
+
         return abs(self.__feedback.requested_position - self.__feedback.position)
 
 
 if __name__ == "__main__":
-    rospy.init_node('node_as', log_level=rospy.DEBUG)
-
-    gripper_HandE = GripperActSrvTcp_Ip(act_srv_name = "robotiq_hand_e", robot_ip="192.168.0.102")
+    node_name = "gripper_as"
+    # rospy.init_node('gripper_as', log_level=rospy.DEBUG)
+    rospy.init_node(node_name)
+    gripper_ip = rospy.get_param('/ip_address') # node_name/argsname
+    gripper_HandE = GripperActSrvTcp_Ip(act_srv_name = "robotiq_hand_e", robot_ip=gripper_ip)
 
     rospy.spin()

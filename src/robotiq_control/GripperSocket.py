@@ -134,7 +134,7 @@ class GripperSocket(Robotiq):
             # sent, echo = self.getTargetPos()
             # if echo in pos.decode("utf-8"): #check se il comando ricevuto dal gripper coincide con quello inviato dall'utente
                 success_GTO, _ = self.__sendCommand(RobotiqSocketCmds.cmd_EnableMove)
-        print(success_pos, success_vel, success_force, success_GTO)
+        # print(success_pos, success_vel, success_force, success_GTO)
         return success_GTO
 
     
@@ -179,7 +179,7 @@ class GripperSocket(Robotiq):
     def isInPosition(self):
         return self.getTargetPos() == self.getActualPos()
     
-    def getRequestedPosition(self):
+    def getRequestedPosition(self): #non funziona restituisce il valore corrente della posizone, non quello richiesto
         success, fdbk = self.__sendCommand(RobotiqSocketCmds.cmd_get_echo)
         # print(fdbk)
         return super().byteToPosition(fdbk)

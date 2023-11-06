@@ -63,19 +63,19 @@ class RobotiqSocketCmds():
     cmd_full_close = b'SET POS 255\n'
     cmd_full_open = b'SET POS 0\n'
     
-    cmd_set_pos = b'SET POS ' # aggiungere la posizione in byte desiderata + \n
+    cmd_set_pos = b'SET POS '   # aggiungere la posizione in byte desiderata + \n
     cmd_set_speed = b'SET SPE ' # aggiungere la velocità in byte desiderata + \n
     cmd_set_force = b'SET FOR ' # aggiungere la forza in byte desiderata + \n
 
-    cmd_get_pos = b'GET POS\n '
-    cmd_get_speed = b'GET SPE\n '
-    cmd_get_force = b'GET FOR\n '
+    cmd_get_pos = b'GET POS\n'
+    cmd_get_speed = b'GET SPE\n'
+    cmd_get_force = b'GET FOR\n'
 
     cmd_object_detected = b'GET OBJ\n'
     cmd_get_activation_status = b'GET STA\n' #check fine file
 
     cmd_get_fault = b'GET FLT\n'
-    cmd_get_echo = b'GET PRE \n'
+    cmd_get_echo = b'GET PRE\n'
 
     cmd_get_current = b'GET COU\n'
     cmd_get_driver_state = b'GET DST\n'
@@ -87,18 +87,17 @@ ACT: Activation bit
 0 - Gripper not activated
 1 - Gripper activated
 GTO: 1 if the gripper is set to move to requested position 0 if gripper is set to stay at the same place
-PRE: Position request eco. Should be same a the requested position if
-the gripper successfully received the requested position.
+PRE: Position request eco. Should be same as the requested position if the gripper successfully received the requested position.
 POS: Current position of the gripper
 SPE: Speed eco. Should be same as requested speed.
 FOR: Force parameter of the gripper
 OBJ: Object grippings status
 0 - Fingers are inmotion towards requested position.No object detected.
-1 - Fingers have stopped due to a contact while opening before requested position.Object detected opening.
-2 - Fingers have stopped due to a contact while closing before requested position.Object detected closing.
+1 - Fingers have stopped due to a contact while opening before requested position. Object detected opening.
+2 - Fingers have stopped due to a contact while closing before requested position. Object detected closing.
 3 - Fingers are at requested position.No object detected or object has been loss / dropped.
 STA: Gripper status, returns the current status & motion of theGripper fingers.
-0 -Gripper is in reset ( or automatic release )state. See Fault Status if Gripper is activated.
+0 - Gripper is in reset ( or automatic release )state. See Fault Status if Gripper is activated.
 1 - Activation in progress.
 2 - Not used.
 3 - Activation is completed.
