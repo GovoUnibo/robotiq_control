@@ -121,6 +121,15 @@
             <axis xyz="0 1 0" />
             <limit lower="0" upper="0.035" effort="0" velocity="0" />
         </joint>
+
+        <link name="${prefix}Tcp"/>
+
+        <joint name="${prefix}hand_to_tcp" type="fixed">
+            <origin xyz="0 -0.23 0" rpy="1.57 0 0"/>
+            <parent link="${prefix}dummy_gripper_link"/>
+            <child  link="${prefix}Tcp"/>
+        </joint>
+    
       
       <xacro:finger prefix="${prefix}" parent="${prefix}slider1" stl_name="${finger1_path}" finger_name="finger1"  joint_name="silder1_to_finger1"/>
       <xacro:finger prefix="${prefix}" parent="${prefix}slider2" stl_name="${finger2_path}" finger_name="finger2"  joint_name="silder2_to_finger2"/>
@@ -130,6 +139,6 @@
     </xacro:macro>
 
     <!-- <link name="world"/>
-    <xacro:hande_no_fingers prefix="" finger1_path="/wiring_iema/finger_right.STL" finger2_path="wiring_iema/finger_left.STL" parent="world" /> -->
+    <xacro:hande_no_fingers prefix="" finger1_path="tactile2x6.STL" finger2_path="tactile2x6.STL" parent="world" />  -->
 
 </robot>
