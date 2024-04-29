@@ -29,6 +29,8 @@
   <exec_depend>message_runtime</exec_depend>
 
   <depend>python-pymodbus</depend>
+  
+  <exec_depend>module</exec_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

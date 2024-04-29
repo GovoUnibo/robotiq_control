@@ -2,8 +2,8 @@ import socket
 import time
 
 from enum import Enum
-from robotiq_control.utils import enforce_cast
-from robotiq_control.GripperCommon import RobotiqGripperType,Robotiq,RobotiqSocketCmds
+from robotiq_control.include.utils import enforce_cast
+from robotiq_control.include.GripperCommon import RobotiqGripperType,Robotiq,RobotiqSocketCmds
 ''' da usare se non si usa ros'''
 # from utils import enforce_cast
 # from GripperCommon import RobotiqGripperType,Robotiq,RobotiqSocketCmds

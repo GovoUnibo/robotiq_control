@@ -4,13 +4,9 @@ import actionlib
 
 #from multinherit.multinherit import multi_super  #pip3 install multinherit
 
-from robotiq_control.msg import CommandRobotiqGripperActionFeedback
-from robotiq_control.msg import CommandRobotiqGripperActionGoal
-from robotiq_control.msg import CommandRobotiqGripperActionResult
 from robotiq_control.msg import CommandRobotiqGripperAction
 from robotiq_control.msg import CommandRobotiqGripperGoal
-from robotiq_control.msg import CommandRobotiqGripperFeedback
-from robotiq_control.msg import CommandRobotiqGripperResult
+
 
 
 def operate_gripper():

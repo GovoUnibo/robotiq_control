@@ -7,8 +7,8 @@ from robotiq_control.msg import CommandRobotiqGripperFeedback
 from robotiq_control.msg import CommandRobotiqGripperResult
 
 #from multinherit.multinherit import multi_super  #pip3 install multinherit
-from robotiq_control.GripperCommon import RobotiqGripperType
-from robotiq_control.GripperCmd import GripperCommand
+from robotiq_control.include.GripperCommon import RobotiqGripperType
+from src.robotiq_control.src.robotiq_control.include.GripperMdbsCommunicationControl import GripperCommand
 from sensor_msgs.msg import JointState
 import time
 from threading import Thread

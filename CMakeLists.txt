@@ -22,6 +22,11 @@ add_action_files(
     CommandRobotiqGripper.action
 )
 
+add_message_files(
+  FILES
+  GripperControl.msg
+)
+
 catkin_python_setup()
 
 generate_messages(
@@ -56,8 +61,8 @@ catkin_install_python(PROGRAMS
                   # src/${PROJECT_NAME}/GripperActSrvModbusRtu.py
                   src/${PROJECT_NAME}/GripperActSrvTcp_Ip.py
                   src/${PROJECT_NAME}/GripperActSrvMdbsRs485.py
-
-                  src/${PROJECT_NAME}/GripperModbusRtu.py
+                  src/${PROJECT_NAME}/GripperTopicMdbsRs485.py
+                  # src/${PROJECT_NAME}/include/GripperModbusRtu.py
 
                   src/${PROJECT_NAME}/test_client.py
                   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

@@ -4,7 +4,7 @@ from pymodbus.client.sync import ModbusSerialClient # pip3 install pymodbus==1.3
 from pymodbus.exceptions import ModbusIOException
 from math import ceil
 import numpy as np
-from robotiq_control.GripperCommon import Robotiq
+from robotiq_control.include.GripperCommon import Robotiq
 
 GOAL_DETECTION_THRESHOLD = 0.01 # Max deviation from target goal to consider as goal "reached"
 
@@ -12,8 +12,8 @@ GOAL_DETECTION_THRESHOLD = 0.01 # Max deviation from target goal to consider as 
 
 
 class RobotiqCommunication(ModbusSerialClient, Robotiq):
-    def __init__(self, gripper_type, device_id=0, com_port='/dev/ttyUSB0',baud=115200):
-        ModbusSerialClient.__init__(self, method='rtu',port = com_port ,stopbits=1, bytesize=8, baudrate=baud, timeout=0.2)
+    def __init__(self, gripper_type, device_id=0, com_port='/dev/ttyUSB0',baud=115200, timeout=0.002):
+        ModbusSerialClient.__init__(self, method='rtu',port = com_port ,stopbits=1, bytesize=8, baudrate=baud, timeout=timeout)
         Robotiq.__init__(self, gripper_type)
         self.debug = False
         self.gripper_type = gripper_type
@@ -232,8 +232,6 @@ class RobotiqCommunication(ModbusSerialClient, Robotiq):
 if __name__ == "__main__":
     gripperComm = RobotiqCommunication()
 
-
-    gripperComm.gripperConnect()
 
     # if gripperComm.is_gripperConnected():
     #     print("daje")

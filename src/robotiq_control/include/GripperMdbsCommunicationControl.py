@@ -1,12 +1,16 @@
-from robotiq_control.GripperModbusRtu import RobotiqCommunication, Robotiq
+from robotiq_control.include.GripperModbusRtu import RobotiqCommunication, Robotiq
+from robotiq_control.include.GripperCommon import RobotiqGripperType
 from threading import Thread
 import warnings
 import time
 
 class GripperCommand(RobotiqCommunication, Robotiq):
-    def __init__(self, gripper_type, id=0, comPort='/dev/ttyUSB0',baud_rate=115200):
-        RobotiqCommunication.__init__(self, gripper_type=gripper_type, device_id=id, com_port=comPort, baud=baud_rate)
-        Robotiq.__init__(self, gripper_type)
+    def __init__(self, gripper_type, id=0, comPort='/dev/ttyUSB0',baud_rate=115200, timeout=0.002):
+        RobotiqCommunication.__init__(self, gripper_type=gripper_type, device_id=id, com_port=comPort, baud=baud_rate, timeout=timeout)
+        if gripper_type == '2F_85':
+            Robotiq.__init__(self, RobotiqGripperType.TwoF_85)
+        elif gripper_type == 'Hand_E':
+            Robotiq.__init__(self, RobotiqGripperType.Hand_E)
 
         self._max_stroke = self.max_stroke   #super().max_stroke
         self._min_stroke = self.min_stroke   #super().min_stroke
@@ -115,16 +119,16 @@ class GripperCommand(RobotiqCommunication, Robotiq):
 
         return feedback
 
-    def goTo(self, pos, speed, force):
+    def goTo(self, pos, speed, force, debug=False):
         pos     = self._clamp_position(pos)
         speed   = self._clamp_speed(speed)
         force   = self._clamp_force(force)
         send_success = self.sendUnmonitoredMotionCmd(pos, speed, force)
-
-        if send_success:
-            print('Cmd Sent')
-        else:
-            print('Cmd Not Sent')
+        if debug:
+            if send_success :
+                print('Cmd Sent')
+            else:
+                print('Cmd Not Sent')
 
         return send_success
         
