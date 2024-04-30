@@ -12,6 +12,13 @@ GOAL_DETECTION_THRESHOLD = 0.01 # Max deviation from target goal to consider as 
 
 
 class RobotiqCommunication(ModbusSerialClient, Robotiq):
+    @staticmethod
+    def read_serial_ports():
+        from serial.tools import list_ports
+        port = list_ports.comports()
+        for p in port:
+            print(p)
+            
     def __init__(self, gripper_type, device_id=0, com_port='/dev/ttyUSB0',baud=115200, timeout=0.002):
         ModbusSerialClient.__init__(self, method='rtu',port = com_port ,stopbits=1, bytesize=8, baudrate=baud, timeout=timeout)
         Robotiq.__init__(self, gripper_type)

@@ -5,15 +5,16 @@ import warnings
 import time
 
 class GripperCommand(RobotiqCommunication, Robotiq):
-    def __init__(self, gripper_type, id=0, comPort='/dev/ttyUSB0',baud_rate=115200, timeout=0.002):
+    def __init__(self, gripper_type, id=0, comPort='/dev/ttyUSB0',baud_rate=115200, timeout=0.002, stroke=None):
         RobotiqCommunication.__init__(self, gripper_type=gripper_type, device_id=id, com_port=comPort, baud=baud_rate, timeout=timeout)
         if gripper_type == '2F_85':
-            Robotiq.__init__(self, RobotiqGripperType.TwoF_85)
+            Robotiq.__init__(self, RobotiqGripperType.TwoF_85, stroke)
         elif gripper_type == 'Hand_E':
-            Robotiq.__init__(self, RobotiqGripperType.Hand_E)
+            Robotiq.__init__(self, RobotiqGripperType.Hand_E, stroke)
 
         self._max_stroke = self.max_stroke   #super().max_stroke
         self._min_stroke = self.min_stroke   #super().min_stroke
+        self._max_grasp_force = self.max_grasp_force
         self.gripper_stroke = self.stroke
         self.time_expired = False
         sec_before_expire = 2
@@ -45,13 +46,9 @@ class GripperCommand(RobotiqCommunication, Robotiq):
             print('Connection Lost')
         time.sleep(1)
 
-    def initialize(self):
-        
-        
+    def initialize(self):        
         if self.gripperConnect():
             self.is_gripper_connected = True
-
-
 
         self.deactivate_gripper()
         if self.is_reset():
@@ -136,6 +133,7 @@ class GripperCommand(RobotiqCommunication, Robotiq):
         return self.sendUnmonitoredMotionCmd(self._max_stroke, speed, force)
 
     def close_(self, speed=0.1, force=100):
+        print('Closing Gripper')
         return self.sendUnmonitoredMotionCmd(self._min_stroke, speed, force)
 
 

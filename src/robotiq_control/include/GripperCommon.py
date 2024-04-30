@@ -4,7 +4,8 @@ from enum import Enum
 class Robotiq2f85(object):
     min_stroke = 0.0
     max_stroke = 0.085
-
+    max_grasp_force = 200 #N not sure
+    
     def getPositionRequest(pos, stroke):
         return int(np.clip((3. - 230.)/stroke * pos + 230., 0, 255))
     
@@ -14,6 +15,8 @@ class Robotiq2f85(object):
 class RobotiqHandE(object):
     min_stroke = 0.0
     max_stroke = 0.055
+    max_grasp_force = 158 #N
+
     def getPositionRequest(pos, stroke):
         return int(np.clip((255. - (250 * pos /stroke)), 0, 255))
 
@@ -25,18 +28,20 @@ class RobotiqGripperType(Enum):
     TwoF_85 = 2
 
 class Robotiq(Robotiq2f85, RobotiqHandE):
-    def __init__(self, gripper_type):
+    def __init__(self, gripper_type, stroke=None):
         self.gripper_type = gripper_type
         if gripper_type == RobotiqGripperType.Hand_E:
-            self.stroke = RobotiqHandE.max_stroke
+            self.stroke = stroke if stroke is not None else RobotiqHandE.max_stroke
             self.min_stroke = RobotiqHandE.min_stroke
             self.max_stroke = RobotiqHandE.max_stroke
-            print("Initialized RobotiqHandE -max_stroke: {}, -stroke {}".format(self.max_stroke, self.stroke))
+            self.max_grasp_force = RobotiqHandE.max_grasp_force
+            print("Initialized RobotiqHandE: \n -max stroke: {} \n -min stroke: {} \n -stroke {}".format(self.max_stroke, self.min_stroke, self.stroke))
         elif gripper_type == RobotiqGripperType.TwoF_85:
-            self.stroke = Robotiq2f85.max_stroke
+            self.stroke = stroke if stroke is not None else Robotiq2f85.max_stroke
             self.min_stroke = Robotiq2f85.min_stroke
             self.max_stroke = Robotiq2f85.max_stroke
-            print("Initialized Robotiq2F85 -max_stroke: {}, -stroke {}".format(self.max_stroke, self.stroke))
+            self.max_grasp_force = Robotiq2f85.max_grasp_force
+            print("Initialized Robotiq2F85: \n -max stroke: {} \n -min stroke: {} \n -stroke {}".format(self.max_stroke, self.min_stroke, self.stroke))
     
     def setStroke(self, value):
         self.stroke = value
