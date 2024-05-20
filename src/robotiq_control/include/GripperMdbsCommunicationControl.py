@@ -25,11 +25,14 @@ class GripperCommand(RobotiqCommunication, Robotiq):
     def setGripperStroke(self, stroke):
         self.gripper_stroke = stroke
     
-    def setMaxGripperStroke(self):
-        self.gripper_stroke = self._max_stroke
+    def setMaxGripperStroke(self, max_clamp):
+        self._max_stroke = max_clamp
     
-    def setMinGripperStroke(self):
-        self.gripper_stroke = self._min_stroke
+    def setMinGripperStroke(self, min_clamp):
+        self._min_stroke = min_clamp
+
+    def get_max_force(self):
+        return self._max_grasp_force
 
     def __internalCountDown_sec(self, seconds):
         #print("Started Countdown of ", seconds, "seconds")
@@ -72,7 +75,9 @@ class GripperCommand(RobotiqCommunication, Robotiq):
             out_of_bouds = True
             pos_corrected = self._max_stroke
         if(out_of_bouds):
-            warnings.warn("Position (%.3f[m]) out of limits for %d[mm] gripper: \n- New position: %.3f[m]\n- Min position: %.3f[m]\n- Max position: %.3f[m]" % (pos, self._max_stroke, pos_corrected, self._min_stroke, self._max_stroke))
+            #print in yellow
+            print("\033[93mPosition (%.3f[m]) out of limits for %d[mm] gripper: \n- New position: %.3f[m]\n- Min position: %.3f[m]\n- Max position: %.3f[m] \033[0m" % (pos, self._max_stroke, pos_corrected, self._min_stroke, self._max_stroke))
+            # warnings.warn("Position (%.3f[m]) out of limits for %d[mm] gripper: \n- New position: %.3f[m]\n- Min position: %.3f[m]\n- Max position: %.3f[m]" % (pos, self._max_stroke, pos_corrected, self._min_stroke, self._max_stroke))
             pos = pos_corrected
         return pos
 
@@ -85,7 +90,7 @@ class GripperCommand(RobotiqCommunication, Robotiq):
             out_of_bouds = True
             vel_corrected = 0.1
         if(out_of_bouds):
-            warnings.warn("Speed (%.3f[m/s]) out of limits for %d[mm] gripper: \n- New speed: %.3f[m/s]\n- Min speed: %.3f[m/s]\n- Max speed: %.3f[m/s]" % (vel, self._max_stroke*1000, vel_corrected, 0.013, 0.1))
+            print("\033[93mSpeed (%.3f[m/s]) out of limits: \n- New speed: %.3f[m/s]\n- Min speed: %.3f[m/s]\n- Max speed: %.3f[m/s] \033[0m" % (vel, vel_corrected, 0.013, 0.1))
             vel = vel_corrected
         return vel
     
