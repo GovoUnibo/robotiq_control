@@ -1,15 +1,20 @@
-from robotiq_control.GripperModbusRtu import RobotiqCommunication, Robotiq
+from robotiq_control.include.GripperModbusRtu import RobotiqCommunication, Robotiq
+from robotiq_control.include.GripperCommon import RobotiqGripperType
 from threading import Thread
 import warnings
 import time
 
 class GripperCommand(RobotiqCommunication, Robotiq):
-    def __init__(self, gripper_type, id=0, comPort='/dev/ttyUSB0',baud_rate=115200):
-        RobotiqCommunication.__init__(self, gripper_type=gripper_type, device_id=id, com_port=comPort, baud=baud_rate)
-        Robotiq.__init__(self, gripper_type)
+    def __init__(self, gripper_type, id=0, comPort='/dev/ttyUSB0',baud_rate=115200, timeout=0.002, stroke=None):
+        RobotiqCommunication.__init__(self, gripper_type=gripper_type, device_id=id, com_port=comPort, baud=baud_rate, timeout=timeout)
+        if gripper_type == '2F_85':
+            Robotiq.__init__(self, RobotiqGripperType.TwoF_85, stroke)
+        elif gripper_type == 'Hand_E':
+            Robotiq.__init__(self, RobotiqGripperType.Hand_E, stroke)
 
         self._max_stroke = self.max_stroke   #super().max_stroke
         self._min_stroke = self.min_stroke   #super().min_stroke
+        self._max_grasp_force = self.max_grasp_force
         self.gripper_stroke = self.stroke
         self.time_expired = False
         sec_before_expire = 2
@@ -20,11 +25,14 @@ class GripperCommand(RobotiqCommunication, Robotiq):
     def setGripperStroke(self, stroke):
         self.gripper_stroke = stroke
     
-    def setMaxGripperStroke(self):
-        self.gripper_stroke = self._max_stroke
+    def setMaxGripperStroke(self, max_clamp):
+        self._max_stroke = max_clamp
     
-    def setMinGripperStroke(self):
-        self.gripper_stroke = self._min_stroke
+    def setMinGripperStroke(self, min_clamp):
+        self._min_stroke = min_clamp
+
+    def get_max_force(self):
+        return self._max_grasp_force
 
     def __internalCountDown_sec(self, seconds):
         #print("Started Countdown of ", seconds, "seconds")
@@ -41,13 +49,9 @@ class GripperCommand(RobotiqCommunication, Robotiq):
             print('Connection Lost')
         time.sleep(1)
 
-    def initialize(self):
-        
-        
+    def initialize(self):        
         if self.gripperConnect():
             self.is_gripper_connected = True
-
-
 
         self.deactivate_gripper()
         if self.is_reset():
@@ -71,7 +75,9 @@ class GripperCommand(RobotiqCommunication, Robotiq):
             out_of_bouds = True
             pos_corrected = self._max_stroke
         if(out_of_bouds):
-            warnings.warn("Position (%.3f[m]) out of limits for %d[mm] gripper: \n- New position: %.3f[m]\n- Min position: %.3f[m]\n- Max position: %.3f[m]" % (pos, self._max_stroke, pos_corrected, self._min_stroke, self._max_stroke))
+            #print in yellow
+            print("\033[93mPosition (%.3f[m]) out of limits for %d[mm] gripper: \n- New position: %.3f[m]\n- Min position: %.3f[m]\n- Max position: %.3f[m] \033[0m" % (pos, self._max_stroke, pos_corrected, self._min_stroke, self._max_stroke))
+            # warnings.warn("Position (%.3f[m]) out of limits for %d[mm] gripper: \n- New position: %.3f[m]\n- Min position: %.3f[m]\n- Max position: %.3f[m]" % (pos, self._max_stroke, pos_corrected, self._min_stroke, self._max_stroke))
             pos = pos_corrected
         return pos
 
@@ -84,7 +90,7 @@ class GripperCommand(RobotiqCommunication, Robotiq):
             out_of_bouds = True
             vel_corrected = 0.1
         if(out_of_bouds):
-            warnings.warn("Speed (%.3f[m/s]) out of limits for %d[mm] gripper: \n- New speed: %.3f[m/s]\n- Min speed: %.3f[m/s]\n- Max speed: %.3f[m/s]" % (vel, self._max_stroke*1000, vel_corrected, 0.013, 0.1))
+            print("\033[93mSpeed (%.3f[m/s]) out of limits: \n- New speed: %.3f[m/s]\n- Min speed: %.3f[m/s]\n- Max speed: %.3f[m/s] \033[0m" % (vel, vel_corrected, 0.013, 0.1))
             vel = vel_corrected
         return vel
     
@@ -115,16 +121,16 @@ class GripperCommand(RobotiqCommunication, Robotiq):
 
         return feedback
 
-    def goTo(self, pos, speed, force):
+    def goTo(self, pos, speed, force, debug=False):
         pos     = self._clamp_position(pos)
         speed   = self._clamp_speed(speed)
         force   = self._clamp_force(force)
         send_success = self.sendUnmonitoredMotionCmd(pos, speed, force)
-
-        if send_success:
-            print('Cmd Sent')
-        else:
-            print('Cmd Not Sent')
+        if debug:
+            if send_success :
+                print('Cmd Sent')
+            else:
+                print('Cmd Not Sent')
 
         return send_success
         
@@ -132,6 +138,7 @@ class GripperCommand(RobotiqCommunication, Robotiq):
         return self.sendUnmonitoredMotionCmd(self._max_stroke, speed, force)
 
     def close_(self, speed=0.1, force=100):
+        print('Closing Gripper')
         return self.sendUnmonitoredMotionCmd(self._min_stroke, speed, force)
 
 

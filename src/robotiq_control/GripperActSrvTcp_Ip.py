@@ -4,8 +4,8 @@ from robotiq_control.msg import CommandRobotiqGripperFeedback
 from robotiq_control.msg import CommandRobotiqGripperResult
 from sensor_msgs.msg import JointState
 
-from robotiq_control.GripperCommon import RobotiqGripperType
-from robotiq_control.GripperSocket import GripperSocket
+from robotiq_control.include.GripperCommon import RobotiqGripperType
+from src.robotiq_control.src.robotiq_control.include.GripperTcpIpCommControl import GripperSocket
 
 import rospy, actionlib
 
@@ -75,7 +75,7 @@ class GripperActSrvTcp_Ip(GripperSocket, actionlib.SimpleActionServer):
         rate = rospy.Rate(1)
 
         if not goal.stop:
-            cmd_sent = self.moveToPos( goal.position, goal.speed, goal.force)
+            cmd_sent = self.moveToPos(goal.position, goal.speed, goal.force)
 
         if not cmd_sent:
             self.__abortingActionServer("Unable to Send Tcp Command") 
