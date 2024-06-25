@@ -1,10 +1,10 @@
 #! /usr/bin/env python3
-
 from pymodbus.client.sync import ModbusSerialClient # pip3 install pymodbus==1.3.2
 from pymodbus.exceptions import ModbusIOException
 from math import ceil
 import numpy as np
-from GripperCommon import Robotiq
+from GripperCommon import Robotiq, RobotiqGripperType
+
 
 GOAL_DETECTION_THRESHOLD = 0.01 # Max deviation from target goal to consider as goal "reached"
 
@@ -230,10 +230,15 @@ class RobotiqCommunication(ModbusSerialClient, Robotiq):
 
 
 if __name__ == "__main__":
-    gripperComm = RobotiqCommunication()
+    import os, sys, time
+    sys.path.append(os.path.join(os.path.dirname(__file__)))
+    gripperComm = RobotiqCommunication(RobotiqGripperType.Hand_E, device_id=0, com_port='/dev/ttyUSB0')
 
-
-    gripperComm.gripperConnect()
+    init = False
+    while not init:
+            print("Waiting for gripper to be ready...")
+            init = gripperComm.activate_gripper()
+            time.sleep(0.5)
 
     # if gripperComm.is_gripperConnected():
     #     print("daje")

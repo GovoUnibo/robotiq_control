@@ -42,7 +42,8 @@ class Robotiq(Robotiq2f85, RobotiqHandE):
             self.max_stroke = Robotiq2f85.max_stroke
             self.max_grasp_force = Robotiq2f85.max_grasp_force
             print("Initialized Robotiq2F85: \n -max stroke: {} \n -min stroke: {} \n -stroke {}".format(self.max_stroke, self.min_stroke, self.stroke))
-    
+
+        print(self.stroke)
     def setStroke(self, value):
         self.stroke = value
         

@@ -1,4 +1,8 @@
 #/usr/bin/env python3
+
+import os, sys
+sys.path.append(os.path.join(os.path.dirname(__file__)))
+
 print("Hello World!")
 from GripperModbusRtu import RobotiqCommunication, Robotiq
 from threading import Thread
@@ -159,19 +163,12 @@ if __name__ == "__main__":
     if not checkPresenceComPort(Port):
         print("Default '{}' COM Port not found".format(Port))
         Port = input("Insert COM Port: ")
+    import os, sys
+    sys.path.append(os.path.join(os.path.dirname(__file__)))
+    gripperComm = GripperCommand(gripper_type=RobotiqGripperType.Hand_E)
     
-    gripperComm = GripperCommand(comPort=Port)
-    
-    # threadMonitorGripperStatus = Thread(target=gripperComm.getGipperStatus())
-    
-    if gripperComm.initialize():
-        while True:
-            cmd = input("Insert Command: \n- o: Open\n- c: Close\n")
-            if cmd == 'o':
-                gripperComm.open_()
-            elif cmd == 'c':
-                stroke = float(input("Insert Stroke: "))
-                gripperComm.goTo(pos=stroke, speed=0.3, force=10)
-
-        
-        # print(gripperComm.close_())
+    gripper_init = False
+    while not gripper_init:
+        print("Waiting for gripper to be ready...")
+        gripper_init = gripperComm.initialize()
+        time.sleep(0.5)

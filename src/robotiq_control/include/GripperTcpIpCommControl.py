@@ -19,7 +19,14 @@ class ActivationStatus(Enum):
         
 class GripperSocket(Robotiq):
     
-    def __init__(self, robot_ip="192.168.0.102", port=63352, gripper_type=RobotiqGripperType.Hand_E):
+    def __init__(self, gripper_type:str, robot_ip="192.168.0.102", port=63352):
+        if not gripper_type in ['2F_85', 'Hand_E']:
+            raise ValueError("Gripper type must be '2F_85' or 'Hand_E'")
+        if gripper_type == '2F_85':
+            gripper_type = RobotiqGripperType.TwoF_85
+        elif gripper_type == 'Hand_E':
+            gripper_type = RobotiqGripperType.Hand_E
+            
         Robotiq.__init__(self, gripper_type)
         try:
             self.skt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -151,7 +158,7 @@ class GripperSocket(Robotiq):
         
     
     @enforce_cast
-    def moveToPer(self, pos_perc:int, speed:int, force:int):
+    def goTo(self, pos_perc:int, speed:int, force:int):
         if pos_perc > 100:
             pos_perc = 100
         elif pos_perc < 0:

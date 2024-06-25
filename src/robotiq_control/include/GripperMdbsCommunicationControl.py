@@ -4,13 +4,18 @@ from threading import Thread
 import warnings
 import time
 
-class GripperCommand(RobotiqCommunication, Robotiq):
-    def __init__(self, gripper_type, id=0, comPort='/dev/ttyUSB0',baud_rate=115200, timeout=0.002, stroke=None):
-        RobotiqCommunication.__init__(self, gripper_type=gripper_type, device_id=id, com_port=comPort, baud=baud_rate, timeout=timeout)
+class GripperCommand(RobotiqCommunication):
+    def __init__(self, gripper_type :str, id=0, comPort='/dev/ttyUSB0',baud_rate=115200, timeout=0.002, stroke=None):
+        
+        if not gripper_type in ['2F_85', 'Hand_E']:
+            raise ValueError("Gripper type must be '2F_85' or 'Hand_E'")
+        
         if gripper_type == '2F_85':
-            Robotiq.__init__(self, RobotiqGripperType.TwoF_85, stroke)
+            gripper_type = RobotiqGripperType.TwoF_85
         elif gripper_type == 'Hand_E':
-            Robotiq.__init__(self, RobotiqGripperType.Hand_E, stroke)
+            gripper_type = RobotiqGripperType.Hand_E
+            
+        RobotiqCommunication.__init__(self, gripper_type=gripper_type, device_id=id, com_port=comPort, baud=baud_rate, timeout=timeout)
 
         self._max_stroke = self.max_stroke   #super().max_stroke
         self._min_stroke = self.min_stroke   #super().min_stroke
@@ -21,7 +26,10 @@ class GripperCommand(RobotiqCommunication, Robotiq):
         self.threadTimer = Thread(target=self.__internalCountDown_sec, args=(sec_before_expire,))
         self.threadCheckConnection = Thread(target=self.__CheckConnection)
         self.is_gripper_connected = False
-    
+
+        self.__debug_ = False
+
+
     def setGripperStroke(self, stroke):
         self.gripper_stroke = stroke
     
@@ -121,12 +129,12 @@ class GripperCommand(RobotiqCommunication, Robotiq):
 
         return feedback
 
-    def goTo(self, pos, speed, force, debug=False):
+    def goTo(self, pos, speed, force):
         pos     = self._clamp_position(pos)
         speed   = self._clamp_speed(speed)
         force   = self._clamp_force(force)
         send_success = self.sendUnmonitoredMotionCmd(pos, speed, force)
-        if debug:
+        if self.__debug_ :
             if send_success :
                 print('Cmd Sent')
             else:
@@ -134,24 +142,47 @@ class GripperCommand(RobotiqCommunication, Robotiq):
 
         return send_success
         
-    def open_(self, speed=0.1, force=100):
+    def open(self, speed=0.1, force=100):
         return self.sendUnmonitoredMotionCmd(self._max_stroke, speed, force)
 
-    def close_(self, speed=0.1, force=100):
+    def close(self, speed=0.1, force=100):
         print('Closing Gripper')
         return self.sendUnmonitoredMotionCmd(self._min_stroke, speed, force)
 
 
 if __name__ == "__main__":
-
-    gripperComm = GripperCommand()
-    
+    from serial.tools import list_ports as readComPorts
+    import os, sys
+    sys.path.append(os.path.join(os.path.dirname(__file__)))
+    gripperComm = GripperCommand(gripper_type=RobotiqGripperType.Hand_E)
     threadMonitorGripperStatus = Thread(target=gripperComm.getGipperStatus())
 
-    if gripperComm.initialize():
-        #print(gripperComm.getGipperStatus())
-        gripperComm.goTo(pos=0.1, speed=0.3, force=100)
-        #print(gripperComm.getGipperStatus())
+    def checkPresenceComPort(COM_port):
+        myports = list(readComPorts.comports())
+        for port in myports:
+            if COM_port == port.device:
+                return True
 
-        # print(gripperComm.open_())
-        # print(gripperComm.close_())
+        return False
+
+    def readPorts():
+        myports = list(readComPorts.comports())
+        list_of_ports = []
+        for port in myports:
+            list_of_ports.append(port.device)
+        return list_of_ports
+
+    Port = '/dev/ttyUSB1'
+    print("List of Ports: ", readPorts())
+    if not checkPresenceComPort(Port):
+        print("Default '{}' COM Port not found".format(Port))
+        Port = input("Insert COM Port: ")
+
+    
+    gripper_init = False
+    while not gripper_init:
+        print("Waiting for gripper to be ready...")
+        gripper_init = gripperComm.initialize()
+        time.sleep(0.5)
+    
+    gripperComm.goTo(0.055, 0.1, 100)

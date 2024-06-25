@@ -152,6 +152,7 @@ class RobotiqCommunication(ModbusSerialClient, Robotiq):
 
 
     def sendUnmonitoredMotionCmd(self, pos, speed, force):
+        print(pos, speed, force)
         self.rACT = 1
         self.rGTO = 1
         self.rPR = super().getPositionRequest(pos)
