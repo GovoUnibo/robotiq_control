@@ -99,7 +99,8 @@ class GripperSocket(Robotiq):
     def initialize(self):
         if not self.is_connected:
             self.connect()
-        
+        # print("Checking Gripper Status")
+        # print(self.__checkGripperStatus())
         if self.isSleeping(): #gripper is in reset
             print("Sending Activation Cmd")
             cmd_sent = self.__activate()
@@ -141,11 +142,11 @@ class GripperSocket(Robotiq):
             # sent, echo = self.getTargetPos()
             # if echo in pos.decode("utf-8"): #check se il comando ricevuto dal gripper coincide con quello inviato dall'utente
                 success_GTO, _ = self.__sendCommand(RobotiqSocketCmds.cmd_EnableMove)
-        print(success_pos, success_vel, success_force, success_GTO)
+        # print(success_pos, success_vel, success_force, success_GTO)
         return success_GTO
 
     
-    def moveToPos(self, pos, speed, force):
+    def goTo(self, pos, speed, force):
         if pos > self.max_stroke:
             pos = self.max_stroke
         elif pos < 0:
@@ -158,7 +159,7 @@ class GripperSocket(Robotiq):
         
     
     @enforce_cast
-    def goTo(self, pos_perc:int, speed:int, force:int):
+    def move_perc_pos(self, pos_perc:int, speed:int, force:int):
         if pos_perc > 100:
             pos_perc = 100
         elif pos_perc < 0:

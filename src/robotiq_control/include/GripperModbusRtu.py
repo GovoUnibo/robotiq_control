@@ -16,10 +16,25 @@ class RobotiqCommunication(ModbusSerialClient, Robotiq):
     def read_serial_ports():
         from serial.tools import list_ports
         port = list_ports.comports()
+        port_devices = []
         for p in port:
-            print(p)
+            print("\033[1;36;40m Port found:", p.device, "\033[0m")
+            port_devices.append(p.device)
+
+       
+        return port_devices
+    
+    @staticmethod
+    def check_port(port):
+        if not port in RobotiqCommunication.read_serial_ports():
+            print("Default '{}' COM Port not found".format(port))
+            return input("Insert COM Port: ")
+
+        return port
+
             
     def __init__(self, gripper_type, device_id=0, com_port='/dev/ttyUSB0',baud=115200, timeout=0.002):
+        com_port = self.check_port(com_port)
         ModbusSerialClient.__init__(self, method='rtu',port = com_port ,stopbits=1, bytesize=8, baudrate=baud, timeout=timeout)
         Robotiq.__init__(self, gripper_type)
         self.debug = False

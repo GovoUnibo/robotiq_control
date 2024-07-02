@@ -154,7 +154,7 @@ if __name__ == "__main__":
     from serial.tools import list_ports as readComPorts
     import os, sys
     sys.path.append(os.path.join(os.path.dirname(__file__)))
-    gripperComm = GripperCommand(gripper_type=RobotiqGripperType.Hand_E)
+    gripperComm = GripperCommand(gripper_type='Hand_E', id=0, comPort='/dev/ttyUSB0', baud_rate=115200, timeout=0.002)
     threadMonitorGripperStatus = Thread(target=gripperComm.getGipperStatus())
 
     def checkPresenceComPort(COM_port):
@@ -172,7 +172,7 @@ if __name__ == "__main__":
             list_of_ports.append(port.device)
         return list_of_ports
 
-    Port = '/dev/ttyUSB1'
+    Port = '/dev/ttyUSB0'
     print("List of Ports: ", readPorts())
     if not checkPresenceComPort(Port):
         print("Default '{}' COM Port not found".format(Port))
@@ -184,5 +184,6 @@ if __name__ == "__main__":
         print("Waiting for gripper to be ready...")
         gripper_init = gripperComm.initialize()
         time.sleep(0.5)
+        exit()
     
     gripperComm.goTo(0.055, 0.1, 100)

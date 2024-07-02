@@ -28,6 +28,14 @@ class GripperControl:
                                                timeout=kwargs.get('timeout', 0.002)
                                             )
 
+    def get_max_stroke(self) -> float:
+        return self.gripper.max_stroke
+
+    def get_min_stroke(self) -> float:
+        return self.gripper.min_stroke
+
+    def get_max_force(self) -> float:
+        return self.gripper.get_max_force()
     
     def initialize(self) -> bool:
         self.init = False
@@ -53,8 +61,8 @@ if __name__ == "__main__":
     import os, sys
     sys.path.append(os.path.join(os.path.dirname(__file__)))
     # Esempio di utilizzo
-    # gripper_control_socket = GripperControl(gripper_type=RobotiqGripperType.Hand_E, commu_type='socket', robot_ip='192.168.0.105', port=12345)
-    gripper_control_mdb = GripperControl('Hand_E', commu_type='mdb', id=0, comPort='/dev/ttyUSB0', baud_rate=115200, timeout=0.005)
+    # gripper_control_socket = GripperControl('2F_85', commu_type='socket', robot_ip="192.168.0.102", port=63352)
+    # gripper_control_mdb = GripperControl('Hand_E', commu_type='mdb', id=0, comPort='/dev/ttyUSB0', baud_rate=115200, timeout=0.005)
     
-    gripper_control_mdb.initialize()
-    gripper_control_mdb.go_to(0.005, 0.1, 10)
+    # gripper_control_mdb.initialize()
+    # gripper_control_mdb.go_to(100, 0.1, 10)
