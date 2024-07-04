@@ -18,7 +18,7 @@ class RobotiqCommunication(ModbusSerialClient, Robotiq):
         port = list_ports.comports()
         port_devices = []
         for p in port:
-            print("\033[1;36;40m Port found:", p.device, "\033[0m")
+            print("\033[1;36;40m Gripper Port found:", p.device, "\033[0m")
             port_devices.append(p.device)
 
        
@@ -33,10 +33,10 @@ class RobotiqCommunication(ModbusSerialClient, Robotiq):
         return port
 
             
-    def __init__(self, gripper_type, device_id=0, com_port='/dev/ttyUSB0',baud=115200, timeout=0.002):
-        com_port = self.check_port(com_port)
+    def __init__(self, gripper_type, device_id=0, com_port='/dev/ttyUSB0',baud=115200, timeout=0.002, stroke=None):
+        # com_port = self.check_port(com_port)
+        Robotiq.__init__(self, gripper_type, stroke)
         ModbusSerialClient.__init__(self, method='rtu',port = com_port ,stopbits=1, bytesize=8, baudrate=baud, timeout=timeout)
-        Robotiq.__init__(self, gripper_type)
         self.debug = False
         self.gripper_type = gripper_type
         self.com_port = com_port
@@ -72,16 +72,19 @@ class RobotiqCommunication(ModbusSerialClient, Robotiq):
             return True
         else:
             print("Unable to connect to {}".format(self.com_port))
+            print("\033[1;31;40m To solve Try to run These Commands: \n\t$ sudo chmod 777 /dev/ttyUSBX \n\t$ sudo chmod 777 /dev/ttyUSBX \033[0m")
             return False
         
 
     def checkConnection(self):
-        self.is_gripper_connected = self.is_socket_open()
+        self.is_gripper_connected = ModbusSerialClient.connect(self)
 
         if not self.is_gripper_connected:
             self._updateError("Connection to port{}Loss".format(self.com_port))
             if self.close():
                 print("Socket Closed")
+        else:
+            print("Connection to port{}Established".format(self.com_port))
         
         return self.is_gripper_connected
 
@@ -167,7 +170,6 @@ class RobotiqCommunication(ModbusSerialClient, Robotiq):
 
 
     def sendUnmonitoredMotionCmd(self, pos, speed, force):
-        print(pos, speed, force)
         self.rACT = 1
         self.rGTO = 1
         self.rPR = super().getPositionRequest(pos)
@@ -253,21 +255,23 @@ class RobotiqCommunication(ModbusSerialClient, Robotiq):
 
 
 if __name__ == "__main__":
-    gripperComm = RobotiqCommunication()
+    from GripperCommon import RobotiqGripperType
+    import time
+    gripperComm = RobotiqCommunication(gripper_type=RobotiqGripperType.Hand_E, com_port='/dev/ttyUSB0', baud=115200, timeout=0.002)
 
 
-    # if gripperComm.is_gripperConnected():
-    #     print("daje")
-    #     iter = 0 
-    #     while not gripperComm.is_ready():
-    #         success = gripperComm.deactivate_gripper()
-    #         if gripperComm.is_reset():
-    #             success = gripperComm.activate_gripper()
-    #         iter = iter +1
-    #         print(iter)
-    #         time.sleep(2)
+    if gripperComm.checkConnection():
+        print("daje")
+        iter = 0 
+        while not gripperComm.is_ready():
+            success = gripperComm.deactivate_gripper()
+            if gripperComm.is_reset():
+                success = gripperComm.activate_gripper()
+            iter = iter +1
+            print(iter)
+            time.sleep(2)
         
-    # gripperComm.goto(pos=0.1, speed=0.01, force=100)
+    # gripperComm.sendUnmonitoredMotionCmd(pos=0.1, speed=0.1, force=100)
 
         
         

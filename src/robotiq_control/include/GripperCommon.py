@@ -29,6 +29,7 @@ class RobotiqGripperType(Enum):
 
 class Robotiq(Robotiq2f85, RobotiqHandE):
     def __init__(self, gripper_type, stroke=None):
+        print(stroke)
         self.gripper_type = gripper_type
         if gripper_type == RobotiqGripperType.Hand_E:
             self.stroke = stroke if stroke is not None else RobotiqHandE.max_stroke
@@ -43,9 +44,31 @@ class Robotiq(Robotiq2f85, RobotiqHandE):
             self.max_grasp_force = Robotiq2f85.max_grasp_force
             print("Initialized Robotiq2F85: \n -max stroke: {} \n -min stroke: {} \n -stroke {}".format(self.max_stroke, self.min_stroke, self.stroke))
 
-        print(self.stroke)
-    def setStroke(self, value):
+    # --- Stroke Set Get Methods --- #
+    def set_stroke(self, value):
         self.stroke = value
+    
+    def set_max_stroke(self, value):
+        self.max_stroke = value
+    
+    def set_min_stroke(self, value):
+        self.min_stroke = value
+    
+    def get_stroke(self):
+        return self.stroke
+    
+    def get_max_stroke(self):
+        return self.max_stroke
+
+    def get_min_stroke(self):
+        return self.min_stroke
+
+    # --- Force Set Get Methods --- #
+    def set_max_force(self, value):
+        self.max_grasp_force = value
+    
+    def get_max_force(self):
+        return self.max_grasp_force
         
     def getPositionRequest(self, pos):
         if self.gripper_type == RobotiqGripperType.Hand_E:

@@ -19,7 +19,7 @@ class ActivationStatus(Enum):
         
 class GripperSocket(Robotiq):
     
-    def __init__(self, gripper_type:str, robot_ip="192.168.0.102", port=63352):
+    def __init__(self, gripper_type:str, robot_ip="192.168.0.102", port=63352, stroke = None):
         if not gripper_type in ['2F_85', 'Hand_E']:
             raise ValueError("Gripper type must be '2F_85' or 'Hand_E'")
         if gripper_type == '2F_85':
@@ -27,7 +27,7 @@ class GripperSocket(Robotiq):
         elif gripper_type == 'Hand_E':
             gripper_type = RobotiqGripperType.Hand_E
             
-        Robotiq.__init__(self, gripper_type)
+        Robotiq.__init__(self, gripper_type, stroke)
         try:
             self.skt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.skt.settimeout(0.1)
@@ -92,9 +92,6 @@ class GripperSocket(Robotiq):
         
         # print(ActivationStatus(int(result)))
         return success, ActivationStatus(int(result))
-    
-    def setGripperAperture(self, value):
-        super().setStroke(value)
         
     def initialize(self):
         if not self.is_connected:
@@ -111,7 +108,6 @@ class GripperSocket(Robotiq):
         
         return False
     
-    
     def __activate(self):
         return self.__sendCommand(RobotiqSocketCmds.cmd_activate)
     
@@ -126,10 +122,10 @@ class GripperSocket(Robotiq):
         _, activation_status =  self.__checkGripperStatus()
         return activation_status == ActivationStatus.RESET
     
-    def open(self):
+    def open_(self):
         return self.__sendCommand(RobotiqSocketCmds.cmd_full_open)
 
-    def close(self):    
+    def close_(self):    
         return self.__sendCommand(RobotiqSocketCmds.cmd_full_close)
 
     def __sendMoveRoutine(self, pos, speed, force):

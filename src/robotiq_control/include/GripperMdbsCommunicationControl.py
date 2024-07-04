@@ -15,7 +15,7 @@ class GripperCommand(RobotiqCommunication):
         elif gripper_type == 'Hand_E':
             gripper_type = RobotiqGripperType.Hand_E
             
-        RobotiqCommunication.__init__(self, gripper_type=gripper_type, device_id=id, com_port=comPort, baud=baud_rate, timeout=timeout)
+        RobotiqCommunication.__init__(self, gripper_type=gripper_type, device_id=id, com_port=comPort, baud=baud_rate, timeout=timeout, stroke=stroke)
 
         self._max_stroke = self.max_stroke   #super().max_stroke
         self._min_stroke = self.min_stroke   #super().min_stroke
@@ -28,19 +28,6 @@ class GripperCommand(RobotiqCommunication):
         self.is_gripper_connected = False
 
         self.__debug_ = False
-
-
-    def setGripperStroke(self, stroke):
-        self.gripper_stroke = stroke
-    
-    def setMaxGripperStroke(self, max_clamp):
-        self._max_stroke = max_clamp
-    
-    def setMinGripperStroke(self, min_clamp):
-        self._min_stroke = min_clamp
-
-    def get_max_force(self):
-        return self._max_grasp_force
 
     def __internalCountDown_sec(self, seconds):
         #print("Started Countdown of ", seconds, "seconds")
@@ -57,23 +44,25 @@ class GripperCommand(RobotiqCommunication):
             print('Connection Lost')
         time.sleep(1)
 
-    def initialize(self):        
+    def initialize(self):
+        
         if self.gripperConnect():
             self.is_gripper_connected = True
-
+        
         self.deactivate_gripper()
+        
         if self.is_reset():
+            
             print("Activation Request\n")
             self.activate_gripper()
             time.sleep(2)
-            
+        
         if self.is_ready():
             print("Gripper is Rdy")
             return True
         else:
             return False
-
-
+        
     def _clamp_position(self,pos):
         out_of_bouds = False
         if (pos <= self._min_stroke):
@@ -142,48 +131,48 @@ class GripperCommand(RobotiqCommunication):
 
         return send_success
         
-    def open(self, speed=0.1, force=100):
+    def open_(self, speed=0.1, force=100):
         return self.sendUnmonitoredMotionCmd(self._max_stroke, speed, force)
 
-    def close(self, speed=0.1, force=100):
-        print('Closing Gripper')
+    def close_(self, speed=0.1, force=100):
         return self.sendUnmonitoredMotionCmd(self._min_stroke, speed, force)
+        #attenzione il metodo close() è ereitato dalla classe che gestisce la comunicazione mdbs con il gripper
 
 
 if __name__ == "__main__":
     from serial.tools import list_ports as readComPorts
     import os, sys
     sys.path.append(os.path.join(os.path.dirname(__file__)))
-    gripperComm = GripperCommand(gripper_type='Hand_E', id=0, comPort='/dev/ttyUSB0', baud_rate=115200, timeout=0.002)
-    threadMonitorGripperStatus = Thread(target=gripperComm.getGipperStatus())
+    # gripperComm = GripperCommand(gripper_type='Hand_E', id=0, comPort='/dev/ttyUSB0', baud_rate=115200, timeout=0.002)
+    # threadMonitorGripperStatus = Thread(target=gripperComm.getGipperStatus())
 
-    def checkPresenceComPort(COM_port):
-        myports = list(readComPorts.comports())
-        for port in myports:
-            if COM_port == port.device:
-                return True
+    # def checkPresenceComPort(COM_port):
+    #     myports = list(readComPorts.comports())
+    #     for port in myports:
+    #         if COM_port == port.device:
+    #             return True
 
-        return False
+    #     return False
 
-    def readPorts():
-        myports = list(readComPorts.comports())
-        list_of_ports = []
-        for port in myports:
-            list_of_ports.append(port.device)
-        return list_of_ports
+    # def readPorts():
+    #     myports = list(readComPorts.comports())
+    #     list_of_ports = []
+    #     for port in myports:
+    #         list_of_ports.append(port.device)
+    #     return list_of_ports
 
-    Port = '/dev/ttyUSB0'
-    print("List of Ports: ", readPorts())
-    if not checkPresenceComPort(Port):
-        print("Default '{}' COM Port not found".format(Port))
-        Port = input("Insert COM Port: ")
+    # Port = '/dev/ttyUSB0'
+    # print("List of Ports: ", readPorts())
+    # if not checkPresenceComPort(Port):
+    #     print("Default '{}' COM Port not found".format(Port))
+    #     Port = input("Insert COM Port: ")
 
     
-    gripper_init = False
-    while not gripper_init:
-        print("Waiting for gripper to be ready...")
-        gripper_init = gripperComm.initialize()
-        time.sleep(0.5)
-        exit()
+    # gripper_init = False
+    # while not gripper_init:
+    #     print("Waiting for gripper to be ready...")
+    #     gripper_init = gripperComm.initialize()
+    #     time.sleep(0.5)
+    #     exit()
     
-    gripperComm.goTo(0.055, 0.1, 100)
+    # gripperComm.goTo(0.055, 0.1, 100)
