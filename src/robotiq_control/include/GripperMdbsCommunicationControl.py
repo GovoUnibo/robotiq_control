@@ -55,7 +55,7 @@ class GripperCommand(RobotiqCommunication):
             
             print("Activation Request\n")
             self.activate_gripper()
-            time.sleep(2)
+            time.sleep(3)
         
         if self.is_ready():
             print("Gripper is Rdy")

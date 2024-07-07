@@ -34,7 +34,7 @@ class RobotiqCommunication(ModbusSerialClient, Robotiq):
 
             
     def __init__(self, gripper_type, device_id=0, com_port='/dev/ttyUSB0',baud=115200, timeout=0.002, stroke=None):
-        # com_port = self.check_port(com_port)
+        com_port = self.check_port(com_port)
         Robotiq.__init__(self, gripper_type, stroke)
         ModbusSerialClient.__init__(self, method='rtu',port = com_port ,stopbits=1, bytesize=8, baudrate=baud, timeout=timeout)
         self.debug = False
@@ -174,8 +174,12 @@ class RobotiqCommunication(ModbusSerialClient, Robotiq):
         self.rGTO = 1
         self.rPR = super().getPositionRequest(pos)
         self.rSP = int(np.clip(255./(0.1 - 0.013) * speed-0.013, 0, 255))
-        self.rFR = int(np.clip(255./(self._max_force) * force, 0, 255))
+        print("Force: ", force)
+        self.rFR = int(np.clip((force / 100) * 255, 0, 255))
+        print("rPR: ", self.rFR)
         self._update_cmd()
+       
+
         return self.__sendCommand()
     
     def setActivationConfig(self):
@@ -215,8 +219,8 @@ class RobotiqCommunication(ModbusSerialClient, Robotiq):
                 
     def is_ready(self):
         self.__readGripperRegisters(6)
-        if self.debug:
-            print(self.gSTA, self.gACT)
+        # if self.debug:
+        #     print(self.gSTA, self.gACT)
         return self.gSTA == 3 and self.gACT == 1
 
     def is_reset(self):

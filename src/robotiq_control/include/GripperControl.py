@@ -53,6 +53,24 @@ class GripperControl:
         
     def get_max_force(self) -> float:
         return self.gripper.get_max_force()
+
+    def get_status(self, as_dict=False) -> dict:
+        '''
+        Return the status of the gripper if as_dict is True, otherwise return the status as a list
+        '''
+        if not as_dict:
+            return self.gripper.getGipperStatus()
+        status = self.gripper.getGipperStatus()
+        return {
+            'Ready'             : status[0],
+            'Reset'             : status[1],
+            'Is Moving'         : status[2],
+            'Object Detected'   : status[3],
+            'Fault Code'        : status[4],
+            'Pos'               : status[5],
+            'Requested Pos'     : status[6],
+            'Current'           : status[7],
+        }
     
     def initialize(self) -> bool:
         self.init = False
@@ -60,11 +78,11 @@ class GripperControl:
         print("Initializing gripper...")
         
 
-        while not self.init:
+        while not self.gripper.initialize():
             print("Trying to initialize gripper...")
-            self.init = self.gripper.initialize()
-            time.sleep(0.5)
+            time.sleep(1)
         
+        self.init = True
         return self.init
     
     def open(self) -> None:
