@@ -161,12 +161,12 @@ class RobotiqCommunication(ModbusSerialClient, Robotiq):
          #Initiate command as an empty list
         self.message = []
         #Build the command with each output variable
-        self.message.append(self.rACT + (self.rGTO << 3) + (self.rATR << 4))
-        self.message.append(0)
-        self.message.append(0)
-        self.message.append(self.rPR)
-        self.message.append(self.rSP)
-        self.message.append(self.rFR)
+        self.message.append(self.rACT + (self.rGTO << 3) + (self.rATR << 4)) #byte 0 action request 
+        self.message.append(0) #reserverd
+        self.message.append(0) #reserverd
+        self.message.append(self.rPR) #byte 3 position request
+        self.message.append(self.rSP) #byte 4 speed request
+        self.message.append(self.rFR) #byte 5 force request
 
 
     def sendUnmonitoredMotionCmd(self, pos, speed, force):
@@ -174,9 +174,9 @@ class RobotiqCommunication(ModbusSerialClient, Robotiq):
         self.rGTO = 1
         self.rPR = super().getPositionRequest(pos)
         self.rSP = int(np.clip(255./(0.1 - 0.013) * speed-0.013, 0, 255))
-        print("Force: ", force)
-        self.rFR = int(np.clip((force / 100) * 255, 0, 255))
-        print("rPR: ", self.rFR)
+        
+        self.rFR = int(np.clip((force / 100) * 255, 0, 255)) #questa è in percentuale
+
         self._update_cmd()
        
 
@@ -237,24 +237,29 @@ class RobotiqCommunication(ModbusSerialClient, Robotiq):
 
     def object_detected(self):
         self.__readGripperRegisters(6)
-        return self.gOBJ == 1 or self.gOBJ == 2
+        return self.gOBJ == 1 or self.gOBJ == 2 #codice 1 se obj grasped esternamente, codice 2 se obj grasped internamente
 
     def get_fault_status(self):
         self.__readGripperRegisters(6)
         return self.gFLT
 
     def get_pos(self):
+        '''Get the current position of the gripper'''
         self.__readGripperRegisters(6)
+        print("Position: ", self.gPO)
         po = float(self.gPO)
-        return np.clip(self.stroke/(3.-230.)*(po-230.), 0, self.stroke)
+        print("PO: ", po)
+        return super().byteToPosition(po)
 
     def get_req_pos(self):
+        ''' Echo of the requested position '''
         self.__readGripperRegisters(6)
         pr = float(self.gPR)
-        return np.clip(self.stroke/(3.-230.)*(pr-230.), 0, self.stroke)
+        return super().byteToPosition(pr)
 
     def get_current(self):
         self.__readGripperRegisters(6)
+        print("Current: ", self.gCU)
         return self.gCU * 0.1
 
 

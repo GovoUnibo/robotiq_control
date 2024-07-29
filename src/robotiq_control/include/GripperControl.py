@@ -11,8 +11,6 @@ class GripperControl:
             raise ValueError("Gripper type must be '2F_85' or 'Hand_E'")
         if not commu_type in ['socket', 'mdb']:
             raise ValueError("Communication type must be 'socket' or 'mdb'")
-        
-
 
 
         if commu_type == 'socket':
