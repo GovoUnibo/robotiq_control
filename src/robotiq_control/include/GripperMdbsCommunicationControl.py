@@ -6,7 +6,6 @@ import time
 
 class GripperCommand(RobotiqCommunication):
     def __init__(self, gripper_type :str, id=0, comPort='/dev/ttyUSB0',baud_rate=115200, timeout=0.002, stroke=None):
-        
         if not gripper_type in ['2F_85', 'Hand_E']:
             raise ValueError("Gripper type must be '2F_85' or 'Hand_E'")
         
@@ -55,7 +54,7 @@ class GripperCommand(RobotiqCommunication):
             
             print("Activation Request\n")
             self.activate_gripper()
-            time.sleep(2)
+            time.sleep(3)
         
         if self.is_ready():
             print("Gripper is Rdy")

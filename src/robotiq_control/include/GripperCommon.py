@@ -18,7 +18,10 @@ class RobotiqHandE(object):
     max_grasp_force = 158 #N
 
     def getPositionRequest(pos, stroke):
-        return int(np.clip((255. - (250 * pos /stroke)), 0, 255))
+        return int(np.clip((255. - (255 * pos /stroke)), 0, 255))
+    
+    def getForceRequest(force):
+        return int(np.clip(force/100.*255., 0, 255))
 
     def byteToPosition(pos, stroke):
         return np.clip(stroke/(255.)*(255.-pos), 0, stroke)
@@ -29,7 +32,6 @@ class RobotiqGripperType(Enum):
 
 class Robotiq(Robotiq2f85, RobotiqHandE):
     def __init__(self, gripper_type, stroke=None):
-        print(stroke)
         self.gripper_type = gripper_type
         if gripper_type == RobotiqGripperType.Hand_E:
             self.stroke = stroke if stroke is not None else RobotiqHandE.max_stroke

@@ -9,19 +9,20 @@ class GripperControl:
 
         if not gripper_type in ['2F_85', 'Hand_E']:
             raise ValueError("Gripper type must be '2F_85' or 'Hand_E'")
-        if not commu_type in ['socket', 'mdb']:
-            raise ValueError("Communication type must be 'socket' or 'mdb'")
+        
+        if not commu_type in ['tcpip', 'modbus']:
+            raise ValueError("Communication type must be 'tcpip' or 'modbus'")
         
 
 
 
-        if commu_type == 'socket':
+        if commu_type == 'tcpip':
             self.gripper = GripperSocket(robot_ip=kwargs.get('robot_ip', '192.168.0.102'),
                                               port=kwargs.get('port', 63352),
                                               gripper_type=gripper_type,
                                               stroke=kwargs.get('stroke', None)
                                         )
-        elif commu_type == 'mdb':
+        elif commu_type == 'modbus':
             self.gripper = GripperCommand(gripper_type=gripper_type,
                                                id=kwargs.get('id', 0),
                                                comPort=kwargs.get('comPort', '/dev/ttyUSB0'),
@@ -53,6 +54,24 @@ class GripperControl:
         
     def get_max_force(self) -> float:
         return self.gripper.get_max_force()
+
+    def get_status(self, as_dict=False) -> dict:
+        '''
+        Return the status of the gripper if as_dict is True, otherwise return the status as a list
+        '''
+        if not as_dict:
+            return self.gripper.getGipperStatus()
+        status = self.gripper.getGipperStatus()
+        return {
+            'Ready'             : status[0],
+            'Reset'             : status[1],
+            'Is Moving'         : status[2],
+            'Object Detected'   : status[3],
+            'Fault Code'        : status[4],
+            'Pos'               : status[5],
+            'Requested Pos'     : status[6],
+            'Current'           : status[7],
+        }
     
     def initialize(self) -> bool:
         self.init = False
@@ -60,11 +79,11 @@ class GripperControl:
         print("Initializing gripper...")
         
 
-        while not self.init:
+        while not self.gripper.initialize():
             print("Trying to initialize gripper...")
-            self.init = self.gripper.initialize()
-            time.sleep(0.5)
+            time.sleep(1)
         
+        self.init = True
         return self.init
     
     def open(self) -> None:

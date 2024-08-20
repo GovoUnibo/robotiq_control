@@ -196,7 +196,20 @@ class GripperSocket(Robotiq):
     def getCurrent(self):
         _, fdbk = self.__sendCommand(RobotiqSocketCmds.cmd_get_current)
         return fdbk
+    
+    def getGripperStatus(self):
+        raise NotImplementedError("Not Implemented Yet") #aggiungere tutte le informazioni che si riesce a recuperare dal gripper come lista di valori
+        feedback = []
+        feedback.append(self.is_ready())
+        feedback.append(self.is_reset())
+        feedback.append(self.is_moving())
+        feedback.append(self.object_detected())
+        feedback.append(self.get_fault_status())
+        feedback.append(self.get_pos())
+        feedback.append(self.get_req_pos())
+        feedback.append(self.get_current())
 
+        return feedback
 
 # gripper = GripperSocket()
 # gripper.setGripperAperture(0.038)
