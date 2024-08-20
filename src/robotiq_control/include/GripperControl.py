@@ -9,11 +9,11 @@ class GripperControl:
 
         if not gripper_type in ['2F_85', 'Hand_E']:
             raise ValueError("Gripper type must be '2F_85' or 'Hand_E'")
+
         
         if not commu_type in ['tcpip', 'modbus']:
             raise ValueError("Communication type must be 'tcpip' or 'modbus'")
         
-
 
 
         if commu_type == 'tcpip':
