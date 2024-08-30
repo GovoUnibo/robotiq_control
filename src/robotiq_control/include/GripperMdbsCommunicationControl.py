@@ -103,7 +103,7 @@ class GripperCommand(RobotiqCommunication):
             force = force_corrected
         return force
 
-    def getGipperStatus(self):
+    def getGripperStatus(self):
         
         feedback = []
         feedback.append(self.is_ready())

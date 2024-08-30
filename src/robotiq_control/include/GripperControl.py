@@ -60,8 +60,8 @@ class GripperControl:
         Return the status of the gripper if as_dict is True, otherwise return the status as a list
         '''
         if not as_dict:
-            return self.gripper.getGipperStatus()
-        status = self.gripper.getGipperStatus()
+            return self.gripper.getGripperStatus()
+        status = self.gripper.getGripperStatus()
         return {
             'Ready'             : status[0],
             'Reset'             : status[1],

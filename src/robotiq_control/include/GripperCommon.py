@@ -11,6 +11,8 @@ class Robotiq2f85(object):
     
     def byteToPosition(pos, stroke):
         return np.clip(stroke/(3.-230.)*(pos-230.), 0, stroke)
+    
+
 
 class RobotiqHandE(object):
     min_stroke = 0.0
@@ -77,6 +79,11 @@ class Robotiq(Robotiq2f85, RobotiqHandE):
             return RobotiqHandE.getPositionRequest(pos, self.stroke)
         elif self.gripper_type == RobotiqGripperType.TwoF_85:
             return Robotiq2f85.getPositionRequest(pos, self.stroke)
+    
+    def getForceRequest(self, force): #in percentage
+            return int(np.clip(force/100.*255., 0, 255))
+    def getVelocityRequest(self, vel): #in percentage
+        return int(np.clip(vel/100.*255., 0, 255))
 
     def byteToPosition(self, pos):
         if self.gripper_type == RobotiqGripperType.Hand_E:

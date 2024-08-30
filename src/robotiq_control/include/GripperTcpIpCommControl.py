@@ -121,7 +121,9 @@ class GripperSocket(Robotiq):
     def isSleeping(self):
         _, activation_status =  self.__checkGripperStatus()
         return activation_status == ActivationStatus.RESET
-    
+
+        
+
     def open_(self):
         return self.__sendCommand(RobotiqSocketCmds.cmd_full_open)
 
@@ -147,9 +149,13 @@ class GripperSocket(Robotiq):
             pos = self.max_stroke
         elif pos < 0:
             pos = 0
+        if speed > 100:
+            speed = 100
+        elif speed < 1:
+            speed = 1
         #devono essere int
-        speed = int(speed)
-        force = int(force) 
+        speed = super().getVelocityRequest(speed)
+        force = super().getForceRequest(force)
         pos = RobotiqSocketCmds.cmd_set_pos + str(super().getPositionRequest(pos)).encode() + b"\n"
         return self.__sendMoveRoutine(pos, speed, force)
         
@@ -167,6 +173,10 @@ class GripperSocket(Robotiq):
     def graspDetected(self):
         _ , fdbk = self.__sendCommand(RobotiqSocketCmds.cmd_object_detected)
         return fdbk == 1 or fdbk == 2
+    
+    def isMoving(self):
+        _, fdbk = self.__sendCommand(RobotiqSocketCmds.cmd_get_activation_status)
+        return fdbk == 0
 
     def getFaultId(self):
         _, fdbk = self.__sendCommand(RobotiqSocketCmds.cmd_get_fault)
@@ -198,16 +208,16 @@ class GripperSocket(Robotiq):
         return fdbk
     
     def getGripperStatus(self):
-        raise NotImplementedError("Not Implemented Yet") #aggiungere tutte le informazioni che si riesce a recuperare dal gripper come lista di valori
+        # raise NotImplementedError("Not Implemented Yet") #aggiungere tutte le informazioni che si riesce a recuperare dal gripper come lista di valori
         feedback = []
-        feedback.append(self.is_ready())
-        feedback.append(self.is_reset())
-        feedback.append(self.is_moving())
-        feedback.append(self.object_detected())
-        feedback.append(self.get_fault_status())
-        feedback.append(self.get_pos())
-        feedback.append(self.get_req_pos())
-        feedback.append(self.get_current())
+        feedback.append(self.isReady())
+        feedback.append(self.isSleeping())
+        feedback.append(self.isMoving())
+        feedback.append(self.graspDetected())
+        feedback.append(self.getFaultId())
+        feedback.append(self.getActualPos())
+        feedback.append(self.getRequestedPosition())
+        feedback.append(self.getCurrent())
 
         return feedback
 
