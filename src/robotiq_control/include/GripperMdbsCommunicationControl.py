@@ -1,7 +1,6 @@
-from robotiq_control.include.GripperModbusRtu import RobotiqCommunication, Robotiq
-from robotiq_control.include.GripperCommon import RobotiqGripperType
+from ..include.GripperModbusRtu import RobotiqCommunication, Robotiq
+from ..include.GripperCommon import RobotiqGripperType
 from threading import Thread
-import warnings
 import time
 
 class GripperCommand(RobotiqCommunication):
@@ -78,30 +77,35 @@ class GripperCommand(RobotiqCommunication):
         return pos
 
     def _clamp_speed(self,vel):
-        out_of_bouds = False
-        if (vel <= 0.013):
-            out_of_bouds = True
-            vel_corrected = 0.013
-        elif (vel > 0.101):
-            out_of_bouds = True
-            vel_corrected = 0.1
-        if(out_of_bouds):
-            print("\033[93mSpeed (%.3f[m/s]) out of limits: \n- New speed: %.3f[m/s]\n- Min speed: %.3f[m/s]\n- Max speed: %.3f[m/s] \033[0m" % (vel, vel_corrected, 0.013, 0.1))
-            vel = vel_corrected
-        return vel
+        out_of_bounds = False
+        vel_corrected = vel
+
+        if vel <= 1:
+            out_of_bounds = True
+            vel_corrected = 1
+        elif vel > 100:
+            out_of_bounds = True
+            vel_corrected = 100
+
+        if out_of_bounds:
+            print(f"\033[93mVelocity ({vel:.3f}) out of limits. Gripper speed clamped between 1 and 100.\033[0m")
+    
+        return vel_corrected
     
     def _clamp_force(self,force):
         out_of_bouds = False
+        force_corrected= force
         if (force < 0.0):
             out_of_bouds = True
             force_corrected = 0.0
         elif (force > 100.0):
             out_of_bouds = True
             force_corrected = 100.0
-        if(out_of_bouds):
-            # rospy.logdebug("Force (%.3f[%]) out of limits for %d[mm] gripper: \n- New force: %.3f[%]\n- Min force: %.3f[%]\n- Max force: %.3f[%]" % (force, self._gripper.stroke*1000, force_corrected, 0, 100))
-            force = force_corrected
-        return force
+       
+        if out_of_bouds:
+            pass            # rospy.logdebug("Force (%.3f[%]) out of limits for %d[mm] gripper: \n- New force: %.3f[%]\n- Min force: %.3f[%]\n- Max force: %.3f[%]" % (force, self._gripper.stroke*1000, force_corrected, 0, 100))
+            
+        return force_corrected
 
     def getGripperStatus(self):
         

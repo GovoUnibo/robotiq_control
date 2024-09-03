@@ -1,10 +1,9 @@
 #! /usr/bin/env python3
-
 from pymodbus.client.sync import ModbusSerialClient # pip3 install pymodbus==1.3.2
 from pymodbus.exceptions import ModbusIOException
 from math import ceil
 import numpy as np
-from robotiq_control.include.GripperCommon import Robotiq
+from ..include.GripperCommon import Robotiq
 
 GOAL_DETECTION_THRESHOLD = 0.01 # Max deviation from target goal to consider as goal "reached"
 
@@ -173,7 +172,7 @@ class RobotiqCommunication(ModbusSerialClient, Robotiq):
         self.rACT = 1
         self.rGTO = 1
         self.rPR = super().getPositionRequest(pos)
-        self.rSP = int(np.clip(255./(0.1 - 0.013) * speed-0.013, 0, 255))
+        self.rSP = int(np.clip((speed / 100) * 255, 0, 255))
         
         self.rFR = int(np.clip((force / 100) * 255, 0, 255)) #questa è in percentuale
 
@@ -246,9 +245,7 @@ class RobotiqCommunication(ModbusSerialClient, Robotiq):
     def get_pos(self):
         '''Get the current position of the gripper'''
         self.__readGripperRegisters(6)
-        print("Position: ", self.gPO)
         po = float(self.gPO)
-        print("PO: ", po)
         return super().byteToPosition(po)
 
     def get_req_pos(self):
@@ -259,7 +256,7 @@ class RobotiqCommunication(ModbusSerialClient, Robotiq):
 
     def get_current(self):
         self.__readGripperRegisters(6)
-        print("Current: ", self.gCU)
+        # print("Current: ", self.gCU)
         return self.gCU * 0.1
 
 

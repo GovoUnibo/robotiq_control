@@ -1,7 +1,7 @@
 import os, sys
-sys.path.append(os.path.join(os.path.dirname(__file__)))
-from GripperMdbsCommunicationControl import GripperCommand
-from GripperTcpIpCommControl import GripperSocket
+sys.path.append(os.path.join(os.path.dirname(os.path.dirname(__file__))))
+from .include.GripperMdbsCommunicationControl import GripperCommand
+from .include.GripperTcpIpCommControl import GripperSocket
 
 
 class GripperControl:
