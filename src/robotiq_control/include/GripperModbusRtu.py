@@ -204,11 +204,12 @@ class RobotiqCommunication(ModbusSerialClient, Robotiq):
         if (open_gripper):
             self.rARD=0
         self._update_cmd()
-        self.__sendCommand(self.message)
+        self.__sendCommand()
                 
     def deactivate_emergency_release(self):
         self.rATR = 0
         self._update_cmd()
+        self.__sendCommand()
 
     def stop(self):
         self.rACT = 1

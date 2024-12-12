@@ -100,7 +100,7 @@ if __name__ == "__main__":
     sys.path.append(os.path.join(os.path.dirname(__file__)))
     # Esempio di utilizzo
     # gripper_control_socket = GripperControl('2F_85', commu_type='socket', robot_ip="192.168.0.102", port=63352)
-    gripper_control_mdb = GripperControl('Hand_E', commu_type='mdb', id=1, comPort='/dev/ttyUSB0', baud_rate=115200, timeout=0.005)
+    HAND_E = GripperControl('Hand_E', commu_type='modbus', id=1, comPort='/dev/ttyUSB0', baud_rate=115200, timeout=0.001)
+    HAND_E.gripper.activate_emergency_release()
     
-    gripper_control_mdb.initialize()
     # gripper_control_mdb.go_to(100, 0.1, 10)
